@@ -22,6 +22,13 @@
 var map;
 var mapStyle = 'map-style-default';
 var onloadCookie;
+var markers = {};
+var maplayers = {
+	flow: {
+		name: 'Intensiteit',
+		active: true
+	}
+};
 
 /*
 * Initialize the map on page load
@@ -50,6 +57,7 @@ function initMap() {
 	map.on('load moveend', function() {
 		setMapCookie();
 		updateMapStyle();
+		updateMapLayers();
 	});
 }
 
@@ -96,10 +104,121 @@ function updateMapStyle() {
 }
 
 /*
-* Set the cookie to remember map center, zoom and style
+* Update map layers
+*/
+function updateMapLayers() {
+	$.each(maplayers, function(layer, options) {
+		if (options.active == true) {
+			loadMarkers(layer);
+		}
+		else {
+			unloadMarkers(layer);
+		}
+	});
+}
+
+/*
+* Load/update markers for map layer
+*/
+function loadMarkers(layer) {
+	var icon = L.icon({
+		iconUrl: 'img/icon_arrow.png',
+		iconSize: [16,16],
+		className: 'map-icon-flow'
+	});
+	//check if layer has entry in makers object and add it if not
+	if (!markers.hasOwnProperty(layer)) {
+		markers[layer] = [];
+	}
+	//discard markers that are out of bounds
+	else {
+		for (var i = markers[layer].length - 1; i >= 0; i--) {
+			if (!map.getBounds().contains(markers[layer][i].getLatLng())) {
+				markers[layer][i].remove();
+				markers[layer].splice(i, 1);
+			}
+		}
+	}
+	
+	$.getJSON('maplayer.php', { layer: layer, bounds: map.getBounds().toBBoxString() })
+	.done( function(json) {
+		$.each(json, function(index, v) {
+			//find if marker is already drawn
+			var markerfound = false;
+			for (var i = 0; i < markers[layer].length; i++) {
+				if (markers[layer][i].options.x_id == v.id) {
+					markerfound = true;
+					break;
+				}
+			}
+			//add new marker
+			if (markerfound == false) {
+				var marker = L.marker([v.lat, v.lon], {
+					x_id: v.id,
+					icon: icon,
+					rotationAngle: v.heading,
+					rotationOrigin: 'center',
+					title: v.location_id
+				}).addTo(map);
+				markers[layer].push(marker);
+			}
+		});
+	});
+}
+
+/*
+* remove all markers for map layer
+*/
+function unloadMarkers(layer) {
+	//check if layer has markers
+	if (markers.hasOwnProperty(layer)) {
+		for (var i = markers[layer].length - 1; i >= 0; i--) {
+			markers[layer][i].remove();
+			markers[layer].splice(i, 1);
+		}
+	}
+}
+
+/*
+* Set the cookie to remember map center, zoom, style and active layers
 */
 function setMapCookie() {
-	Cookies.set('fietsviewer_map', [map.getCenter(), map.getZoom(), mapStyle], {expires: 1000});
+	var activeMapLayers = [];
+	$.each(maplayers, function(layer, options) {
+		if (options.active == true) {
+			activeMapLayers.push(layer);
+		}
+	});
+	Cookies.set('fietsviewer_map', [map.getCenter(), map.getZoom(), mapStyle, activeMapLayers], {expires: 1000});
+}
+
+/*
+* draw layer GUI
+*/
+function drawLayerGUI() {
+	$.each(maplayers, function(layer, options) {
+		$('#map-layers fieldset').append('<input type="checkbox" id="map-layer-' + layer + '"><label for="map-layer-' + layer + '">' + options.name + '</label><br>');
+		if (typeof onloadCookie !== 'undefined') {
+			if (onloadCookie[3].indexOf(layer) >= 0) {
+				maplayers[layer].active = true;
+				$('#map-layer-' + layer).prop('checked', true);
+			}
+			else {
+				maplayers[layer].active = false;
+			}
+		}
+		else if (maplayers[layer].active == true) {
+			$('#map-layer-' + layer).prop('checked', true);
+		}
+	});
+	$('#map-layers input').change( function() {
+		var layer = this.id.substr(10);
+		var enableState = $(this).prop('checked');
+		maplayers[layer].active = enableState;
+		updateMapLayers();
+		setMapCookie();
+	});
+	updateMapLayers();
 }
 
 /*
@@ -114,4 +233,5 @@ $(function() {
 		setMapStyle(this.id);
 		updateMapStyle();
 	});
+	drawLayerGUI();
 });

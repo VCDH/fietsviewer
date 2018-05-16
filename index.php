@@ -26,18 +26,26 @@
 	<script src="jquery/jquery-3.3.1.min.js"></script>
 	<script src="js-cookie/js.cookie.min.js"></script>
 	<script src="leaflet/leaflet.js"></script>
+	<script src="Leaflet.RotatedMarker/leaflet.rotatedMarker.js"></script>
 	<script src="map.js"></script>
 </head>
 <body>
 	<div id="map"></div>
-	<div id="map-style">
-		<fieldset>
-		<legend>Kaartachtergrond</legend>
-			<input type="radio" name="map-style" id="map-style-default"><label for="map-style-default">Standaard</label><br>
-			<input type="radio" name="map-style" id="map-style-lighter"><label for="map-style-lighter">Lichter</label><br>
-			<input type="radio" name="map-style" id="map-style-grayscale"><label for="map-style-grayscale">Grijswaarden</label><br>
-			<input type="radio" name="map-style" id="map-style-oldskool"><label for="map-style-oldskool">Ouderwetsch</label>
-		</fieldset>
+	<div id="map-options-container">
+		<div id="map-style">
+			<fieldset>
+			<legend>Kaartachtergrond</legend>
+				<input type="radio" name="map-style" id="map-style-default"><label for="map-style-default">Standaard</label><br>
+				<input type="radio" name="map-style" id="map-style-lighter"><label for="map-style-lighter">Lichter</label><br>
+				<input type="radio" name="map-style" id="map-style-grayscale"><label for="map-style-grayscale">Grijswaarden</label><br>
+				<input type="radio" name="map-style" id="map-style-oldskool"><label for="map-style-oldskool">Ouderwetsch</label>
+			</fieldset>
+		</div>
+		<div id="map-layers">
+			<fieldset>
+			<legend>Kaartlagen</legend>
+			</fieldset>
+		</div>
 	</div>
 </body>
 </html>
