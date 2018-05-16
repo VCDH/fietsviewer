@@ -32,18 +32,21 @@ formele auteursrecht berust bij de Gemeente Den Haag.
 De grafische interface is geschreven in HTML5 in combinatie met JavaScript. 
 Hiervoor is een recente webbrowser met ondersteuning voor HTML5 nodig. Primaire 
 ontwikkeling vindt plaats in Mozilla Firefox. Er wordt gebruik gemaakt van de 
-standaardlibraries JQuery, Leaflet in combinatie met OpenStreetMap en 
-JavaScript Cookie.
+standaardlibraries JQuery, Leaflet in combinatie met OpenStreetMap, 
+Leaflet Rotated Marker en JavaScript Cookie.
 
 De backend is geschreven in PHP (5.3+) en gebruikt een MySQL (5+) of 
-MariaDB (5+) DBMS. 
+MariaDB (5+) DBMS.  Voor PHP < 5.5.0 wordt gebruik gemaakt van de bibliotheek
+password_compat voor een in-plaats alternatief voor de PHP password_* functies.
 
 URLs:
 JQuery: https://jquery.com
 Leaflet: https://leafletjs.com
+Leaflet Rotated Marker: https://github.com/bbecquet/Leaflet.RotatedMarker
 OpenStreetMap: https://www.openstreetmap.org
 JavaScript Cookie: https://github.com/js-cookie/js-cookie
 PHP: http://php.net
+password_compat: https://github.com/ircmaxell/password_compat
 MySQL: https://www.mysql.com
 MariaDB: https://mariadb.org
 Mozilla Firefox: https://www.mozilla.org/firefox
@@ -53,15 +56,13 @@ Mozilla Firefox: https://www.mozilla.org/firefox
 2. Installatie
 ================================================================================
 
-De installatie maakt de databasetabellen en mappenstructuur hiervoor aan. Voer 
-install.php uit vanuit een webbrowser om de installatiewizard te doorlopen.
-Hou de database-credentials bij de hand, hier wordt tijdens de installatie om 
-gevraagd.
+De installatie maakt de databasetabellen aan. Voer install.php uit vanuit de 
+opdrachtregel om het installatieprogramma te doorlopen. Hou de 
+database-credentials bij de hand, hier wordt tijdens de installatie om gevraagd.
 
-Bij het doorlopen van de wizard wordt het bestand config.inc.php aangemaakt. 
-Hierna is de wizard niet meer toegankelijk; verwijder config.inc.php om de 
-wizard opnieuw te doorlopen, of maak handmatig de gewenste wijzigingen in 
-config.inc.php.
+Bij het doorlopen van het programma wordt het bestand config.inc.php aangemaakt.
+Dit bestand is hierna desgewenst handmatig aan te passen, maar wordt 
+overschreven wanneer het installatieprogramma opnieuw wordt uitgevoerd.
 
 
 ================================================================================
