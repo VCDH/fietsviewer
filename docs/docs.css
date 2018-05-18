@@ -1,0 +1,142 @@
+/*
+*	fietsviewer - grafische weergave van fietsdata
+*   Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+*
+*   This program is free software: you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation, either version 3 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License
+*   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+html, body {
+	font-family: 'Calibri', sans-serif;
+	font-size: medium;
+	margin: 0;
+	
+}
+html {
+	background-color: #CCC;
+}
+
+body {
+	width: 60em;
+	margin: auto;
+	padding: 2em;
+	background-color: #FFF;
+	border: 1px solid #000;
+	border-width: 0 1px;
+}
+
+p  {
+	line-height:107%;
+	margin-top: 0.2em;
+	margin-bottom: 1em;
+}
+p.Title {
+	margin-top: 1em;
+	margin-bottom: 0.2em;
+	font-size: xx-large;
+	font-family: "Calibri Light",sans-serif;
+	letter-spacing: -.5px;
+}
+p.Subtitle {
+	margin-top: 0.2em;
+	margin-bottom: 1em;
+	color:#4B4B4B;
+	letter-spacing:.75pt;
+}
+
+ul.Toc, ul.Toc ul {
+	list-style-type: none;
+}
+
+a:link
+	{color:#0563C1;
+	text-decoration:underline;}
+a:visited
+	{color:#954F72;
+	text-decoration:underline;}
+
+h1 {
+	margin-top: 1em;
+	margin-bottom: 0.2em;
+	page-break-after:avoid;
+	font-size: x-large;
+	color:#906913;
+	font-family: "Calibri Light",sans-serif;
+	font-weight: normal;
+}
+h2 {
+	margin-top: 1em;
+	margin-bottom: 0.2em;
+	page-break-after:avoid;
+	font-size: large;
+	color:#155429;
+	font-family: "Calibri Light",sans-serif;
+	font-weight: normal;
+}
+h3 {
+	margin-top: 1em;
+	margin-bottom: 0.2em;
+	page-break-after:avoid;
+	font-size:12.0pt;
+	font-family: "Calibri Light",sans-serif;
+	color:#293575;
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+	margin-bottom: 1em;
+}
+th {
+	border: solid #FFC000 1px;
+	border-right: none;
+	background-color :#FFC000;
+	text-transform: uppercase;
+	font-weight: bold;
+	color: #FFF;
+	text-align: left;
+	padding: 2px 4px;
+}
+tr:nth-child(even) {
+	background-color: #FFF2CC;
+	page-break-inside:avoid;
+}
+tr:nth-child(odd) {
+	background-color: #FFF;
+	page-break-inside:avoid;
+}
+td {
+	border: solid #FFD966 1px;
+	padding: 2px 4px;
+	vertical-align: top;
+}
+td:nth-child(1) {
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+span.FootnoteReference {
+	font-size: 80%;
+	vertical-align: super;
+}
+span.FootnoteReference a {
+	text-decoration: none;
+}
+
+p.FootnoteText::before {
+	display: block;
+	width: 33%;
+	height: 1px;
+	border-top: 1px solid #999;
+	content: " ";
+	margin-top: 2em;
+}

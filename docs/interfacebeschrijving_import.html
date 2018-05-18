@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<!--
+ 	fietsviewer - grafische weergave van fietsdata
+    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+ 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+ 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ 
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<html lang="nl-nl">
+<head>
+	<title>fietsv&#7433;ewer | interfacebeschrijving import</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="docs.css">
+</head>
+<body>
+
+
+<p class="Title">fietsv&#7433;ewer | interfacebeschrijving import</p>
+<p class="Subtitle">Documentversie 01-05-2018</p>
+
+<p>Er kan op twee manieren nieuwe data worden toegevoegd aan
+fietsv&#7433;ewer: handmatig of geautomatiseerd. In beide gevallen dient de
+data in de vorm van een of meerdere CSV-bestanden te worden aangeleverd. In
+deze interfacebeschrijving wordt gegeven hoe de CSV-bestanden opgebouwd moeten
+zijn en hoe deze aangeleverd kunnen worden.</p>
+
+<h1>Inhoudsopgave</h1>
+<ul class="Toc">
+	<li><a href="#_Toc512530250">Grootheden</a></li>
+	<li><a href="#_Toc512530251">Opbouw CSV-bestand</a>
+		<ul>
+			<li><a href="#_Toc512530252">Algemeen</a>
+				<ul>
+					<li><a href="#_Toc512530253">*Toelichting</a></li>
+					<li><a href="#_Toc512530253a">Decimaalscheidingsteken</a></li>
+				</ul>
+			</li>
+			<li><a href="#_Toc512530254">Intensiteit</a></li>
+			<li><a href="#_Toc512530255">Wachttijd</a></li>
+			<li><a href="#_Toc512530256">Rood licht negatie</a></li>
+			<li><a href="#_Toc512530257">Cyclustijd</a></li>
+		</ul>
+	</li>
+	<li><a href="#_Toc512530258">Verwerking import</a>
+		<ul>
+			<li><a href="#_Toc512530259">ID's</a></li>
+			<li><a href="#_Toc512530260">Meta-informatie</a></li>
+			<li><a href="#_Toc512530261">Overschrijven van waarden</a></li>
+			<li><a href="#_Toc512530262">Bestandsintegriteit</a></li>
+		</ul>
+	</li>
+	<li><a href="#_Toc512530263">Aanleveren</a>
+		<ul>
+			<li><a href="#_Toc512530264">Handmatig aanleveren</a></li>
+			<li><a href="#_Toc512530265">Geautomatiseerd aanleveren</a></li>
+		</ul>
+	</li>
+</ul>
+
+
+<h1><a name="_Toc512530250"></a>Grootheden</h1>
+
+<p>fietsv&#7433;ewer ondersteunt de presentatie van en het
+aanleveren van data in de volgende grootheden:</p>
+
+<table>
+ <tr>
+  <th>NAAM</th>
+  <th>OMSCHRIJVING</th>
+ </tr>
+ <tr>
+  <td>Intensiteit</td>
+  <td>Aantal voertuigen (fietsen) per tijdseenheid.</td>
+ </tr>
+ <tr>
+  <td>Wachttijd</td>
+  <td>Gemiddelde wachttijd in een periode bij een verkeerslicht,
+  spoorwegovergang, beweegbare brug, etc.</td>
+ </tr>
+ <tr>
+  <td>Rood licht negatie</td>
+  <td>Aantal gevallen van rood licht negatie in een periode.</td>
+ </tr>
+ <tr>
+  <td>Cyclustijd</td>
+  <td>Gemiddelde cyclustijd van een verkeerslicht in een periode.</td>
+ </tr>
+</table>
+
+<h1><a name="_Toc512530251"></a>Opbouw CSV-bestand</h1>
+
+<p>Voor het aanleveren van intensiteitgegevens wordt hetzelfde
+format gebruikt als het format dat is vastgesteld voor het Data Platform Fiets
+(CROW-Fietsberaad)<span class="FootnoteReference"><a href="#_ftn1" name="_ftnref1" title="">[1]</a></span>.
+Voor de overige grootheden wordt een vergelijkbaar format gebruikt.</p>
+
+<p>Het aangeleverde CSV-bestand dient per grootheid de kolommen
+te bevatten zoals hieronder aangegeven. De eerste rij moet kolomnamen bevatten
+en deze dienen exact overgenomen te worden; soms zijn er meerdere
+mogelijkheden. Kolommen die niet verplicht zijn hoeven niet in het bestand
+aanwezig te zijn. De volgorde van de kolommen is niet belangrijk.</p>
+
+<h2><a name="_Toc512530252"></a>Algemeen</h2>
+
+<p>Onderstaande tabel geeft de kolommen aan die moeten dan wel
+kunnen voorkomen in alle CSV-bestanden, ongeacht de grootheid. Verderop wordt
+per grootheid aangegeven welke kolom(men) hier voor de specifieke grootheden
+bij komen.</p>
+
+<table>
+ <tr>
+  <th>NAAM</th>
+  <th>BETEKENIS</th>
+  <th>VOORBEELD</th>
+  <th>VER-PLICHT</th>
+ </tr>
+ <tr>
+  <td>locatie-id<br>location-id<br>id<br> nr</td>
+   <td>ID van meetpunt</td>
+   <td>FVGDH01_K123-26<br>5<br>5-RB-15b</td>
+   <td>Ja</td>
+ </tr>
+ <tr>
+  <td>adres<br>
+  address</td>
+  <td>Adres, geschikt voor geocodering</td>
+  <td>Claudius Prinsenlaan 12, Breda</td>
+  <td>&nbsp;</td>
+ </tr>
+ <tr>
+  <td>lat</td>
+  <td>Latitude (breedtegraad) van WGS84-coordinaat, decimaal.</td>
+  <td>51.86918</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>lon</td>
+  <td>Longitude (lengtegraad) van WGS84-coordinaat, decimaal.</td>
+  <td>4.784606</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>richting<br>heading<br>direction</td>
+  <td>Richting in graden voor de heenrichting van het verkeer. 0 is noord,
+  90 is oost, etc.</td>
+  <td>284</td>
+  <td>Ja*</td>
+ </tr>
+ <tr>
+  <td>methode<br>method</td>
+  <td>Telmethode; een van de hiernaast staande begrippen</td>
+  <td>Visueel/visual<br>Slang/pressure<br>Radar<br>Lus/induction<br>Vri-lus/trafficlight-induction</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>kwaliteit<br>quality</td>
+  <td>Kwaliteit van de meting; 100=perfect, 50=onnauwkeurig of
+  plausibiliteitsfouten, 0=missing data of afgekeurd</td>
+  <td>80</td>
+  <td>&nbsp;</td>
+ </tr>
+ <tr>
+  <td>periode-van<br>period-from</td>
+  <td>Begin van de periode waarvoor de telwaarden gelden, bijvoorbeeld een
+  dat, week of maand. Format volgens ISO 8601</td>
+  <td>2016-02-28</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>periode-tot<br>period-to</td>
+  <td>Einde van de periode waarvoor de telwaarden gelden, bijvoorbeeld een dag,
+  week of maand.<br>Mag een tijdcomponent bevatten, die is dan in lokale tijd, dus
+  CET/CEST<br>Formaat volgens ISO 8601.<br>Tijdzoneaanduiding is optioneel*.</td>
+  <td>2016-02-28<br>2016-02-28T23:30:58<br>2016-02-28T23:30:58+01:00<br>2016-02-28T2322:30:58Z</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>weekdag<br>day-of-week</td>
+  <td>Lijst van weekdagen waarvoor de telling geldt; telling begint bij
+  0=zondag<br>Extra: 7=werkdagen zonder algemene feestdagen, 8=algemene feestdagen</td>
+  <td>0 (alleen zondag)<br>0,6 (weekend: zaterdag+zondag)<br>0,8 (zon- en feestdagen)<br>1,2,3,4,5 (werkdagen)<br>7 (werkdagen zonder feestdagen)</td>
+  <td>&nbsp;</td>
+ </tr>
+ <tr>
+  <td>tijd-van<br>time-from</td>
+  <td>lokale tijd, dus CET/CEST<br>Formaat volgens ISO 8601.<br>Tijdzoneaanduiding is optioneel*.</td>
+  <td>23:30:58<br>22:30:58Z<br>23:30:58+01:00</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>tijd-tot<br>time-to</td>
+  <td>lokale tijd, dus CET/CEST<br>Formaat volgens ISO 8601.<br>Tijdzoneaanduiding is optioneel*.</td>
+  <td>23:30:58<br>22:30:58Z<br>23:30:58+01:00</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>per</td>
+  <td>0 = aantallen totaal voor getelde periode<br>1 = aantal per uur<br>2 = aantallen per dag<br>Default (wanneer niet opgegeven): 0</td>
+  <td>1</td>
+  <td>&nbsp;</td>
+ </tr>
+</table>
+
+<h3><a name="_Toc512530253"></a>*Toelichting</h3>
+
+<p><b>Richting</b>: in tegenstelling tot het Data Platform
+Fiets is het veld <i>richting/heading/direction</i> verplicht. Dit in verband
+met de correcte weergave op de kaart.</p>
+
+<p><b>Tijdstippen</b>: indien geen tijdzone is aangegeven,
+wordt CES/CEST verondersteld. Houd er in dat geval rekening mee dat bij de
+overgang naar wintertijd een uur data niet juist gecategoriseerd wordt.
+Aanbevolen wordt om tijdstippen altijd in UTC aan te leveren.</p>
+
+<h3><a name="_Toc512530253a"></a>Decimaalscheidingsteken</h3>
+
+<p>Voor alle decimale getallen dient een punt als
+decimaalscheidingsteken gebruikt te worden</p>
+
+<h2><a name="_Toc512530254"></a>Intensiteit</h2>
+
+<p>Onderstaande tabel geeft de aanvullende kolommen aan die
+moeten dan wel kunnen voorkomen in CSV-bestanden voor intensiteitinformatie.</p>
+
+<table>
+ <tr>
+  <th>NAAM</th>
+  <th>BETEKENIS</th>
+  <th>VOORBEELD</th>
+  <th>VER-PLICHT</th>
+ </tr>
+ <tr>
+  <td>fiets<br>bicycle</td>
+  <td>Aantal fietsers in periode voor beide richtingen.</td>
+  <td>293<br>293.43</td>
+  <td>Ja</td>
+ </tr>
+ <tr>
+  <td>fiets-heen<br>bicycle-to</td>
+  <td>Aantal fietsers in periode voor heenrichting (uit veld
+  richting/heading/direction) </td>
+  <td>104<br>140.13</td>
+  <td>&nbsp;</td>
+ </tr>
+ <tr>
+  <td>fiets-terug<br>bicycle-from</td>
+  <td>Aantal fietsers in periode voor terugrichting (uit veld
+  richting/heading/direction) </td>
+  <td>153<br>153.3</td>
+  <td>&nbsp;</td>
+ </tr>
+</table>
+
+<h2><a name="_Toc512530255"></a>Wachttijd</h2>
+
+<p>Onderstaande tabel geeft de aanvullende kolom aan die moet
+voorkomen in CSV-bestanden voor wachttijdinformatie.</p>
+
+<table>
+ <tr>
+  <th>NAAM</th>
+  <th>BETEKENIS</th>
+  <th>VOORBEELD</th>
+  <th>VER-PLICHT</th>
+ </tr>
+ <tr>
+  <td><span lang=EN-GB>wachttijd</span><br>wait-time</td>
+  <td>Totale wachttijd in periode in seconden.</td>
+  <td>241<br>128.6</td>
+  <td>Ja</td>
+ </tr>
+</table>
+
+<h2><a name="_Toc512530256"></a>Rood licht negatie</h2>
+
+<p>Onderstaande tabel geeft de aanvullende kolom aan die moet
+voorkomen in CSV-bestanden voor rood licht negatie.</p>
+
+<table>
+ <tr>
+  <th>NAAM</th>
+  <th>BETEKENIS</th>
+  <th>VOORBEELD</th>
+  <th>VER-PLICHT</th>
+ </tr>
+ <tr>
+  <td>rood-licht-negatie<br>red-light-netation</td>
+  <td>Aantal gevallen van rood licht negatie in periode.</td>
+  <td>6</td>
+  <td>Ja</td>
+ </tr>
+</table>
+
+<h2><a name="_Toc512530257"></a>Cyclustijd</h2>
+
+<p>Onderstaande tabel geeft de aanvullende kolom aan die moet
+voorkomen in CSV-bestanden voor cyclustijden.</p>
+
+<table>
+ <tr>
+  <th>NAAM</th>
+  <th>BETEKENIS</th>
+  <th>VOORBEELD</th>
+  <th>VER-PLICHT</th>
+ </tr>
+ <tr>
+  <td>cyclustijd<br>cycle-time</td>
+  <td>Gemiddelde cyclustijd in periode in seconden.</td>
+  <td>118<br>86.4</td>
+  <td>Ja</td>
+ </tr>
+</table>
+
+<h1><a name="_Toc512530258"></a>Verwerking import</h1>
+
+<h2><a name="_Toc512530259"></a>ID's</h2>
+
+<p>Gebruikte ID's voor meetpunten dienen uniek te zijn binnen
+de eigen organisatie. Datarijen met hetzelfde ID worden beschouwd als onderdeel
+van dezelfde locatie. Bij het fysiek verplaatsen van een meetpunt dient dan ook
+een ander ID gebruikt te worden. Voor data uit VRI's wordt aanbevolen om
+kruispuntnummers en richting/lusnummers in de ID's te verwerken, zodat het
+meetpunt voor de eindgebruiker te relateren is aan de VRI.</p>
+
+<p>Systeembreed wordt er voor gezorgd dat ID's uniek zijn door
+toevoeging van een prefix. Deze prefix wordt automatisch toegevoegd wanneer
+deze niet in het opgegeven ID aanwezig is. Het ID mag dus ook met prefix worden
+aangeleverd.</p>
+
+<h2><a name="_Toc512530260"></a>Meta-informatie</h2>
+
+<p>Wanneer er afwijkende meta-informatie (velden <i>adres</i>, <i>lat</i>,
+<i>lon</i>, <i>richting</i>, <i>methode</i>) wordt aangeleverd dan eerder is
+aangeleverd voor hetzelfde ID, dan wordt de oude informatie overschreven.
+Hierdoor is het mogelijk om fouten of wijzigingen in eerder aangeleverde
+meta-informatie te herstellen.</p>
+
+<p>Wanneer eerder meta-informatie is aangeleverd, is het
+mogelijk om deze voor volgende leveringen (of rijen in dezelfde levering) weg
+te laten. In dat geval wordt de eerder gestuurde informatie gehandhaafd.</p>
+
+<p>Het veld kwaliteit wordt als een bijzondere vorm van
+meta-informatie beschouwd. Per meetwaarde wordt de kwaliteitswaarde bewaard,
+maar na iedere import wordt voor de betroffen meetpunten een (nieuwe)
+gemiddelde kwaliteit berekend die als filteroptie in de grafische interface
+geselecteerd kan worden.</p>
+
+<h2><a name="_Toc512530261"></a>Overschrijven van
+waarden</h2>
+
+<p>Wanneer er voor een meetpunt data wordt aangeleverd die al
+eerder is aangeleverd (identieke periode/tijd), dan wordt de bestaande data
+overschreven. Hierdoor is het mogelijk om fouten of wijzigingen in eerder
+aangeleverde data te herstellen. Er is geen controle op overlappende perioden
+wanneer de tijdstempels niet identiek zijn.</p>
+
+<h2><a name="_Toc512530262"></a>Bestandsintegriteit</h2>
+
+<p>Aangeleverde bestanden worden gecontroleerd op integriteit.
+Wanneer een bestand niet voldoet (verplichte kolom niet aanwezig, verkeerd
+dataformat in een veld of verplicht veld niet ingevuld) wordt het hele bestand
+afgekeurd.</p>
+
+<h1><a name="_Toc512530263"></a>Aanleveren</h1>
+
+<p>Data kan handmatig of geautomatiseerd aangeleverd worden.
+Aangeleverde bestanden worden direct op integriteit gecontroleerd, maar worden
+mogelijk pas later verwerkt en zichtbaar in fietsv&#7433;ewer.</p>
+
+<h2><a name="_Toc512530264"></a>Handmatig aanleveren</h2>
+
+<p>Upload de CSV-bestand(en) via de webinterface van fietsv&#7433;ewer.
+Inloggen is vereist en uw account moet geautoriseerd zijn voor het aanleveren
+van data.</p>
+
+<h2><a name="_Toc512530265"></a>Geautomatiseerd
+aanleveren</h2>
+
+<p>Een CSV-bestand kan ook geautomatiseerd worden aangeleverd
+door het CSV-bestand als een HTTP-POST actie naar een specifieke URL te sturen.
+Deze URL is opvraagbaar via de webinterface van fietsv&#7433;ewer wanneer uw
+account geautoriseerd is voor het aanleveren van data. Deze URL is beveiligd
+met een gebruikersnaam en wachtwoord via Basic HTTP Authentication. Deze
+gegevens treft u bij de URL aan en wijken af van uw aanmeldgegevens.</p>
+
+<p>De POST actie wordt beantwoord met een HTTP statuscode en
+corresponderende plain-text body. De mogelijke antwoorden zijn in onderstaande
+tabel weergegeven.</p>
+
+<table>
+ <tr>
+  <th>HTTP STATUS CODE</th>
+  <th>PLAIN-TEXT BODY</th>
+  <th>BETEKENIS</th>
+ </tr>
+ <tr>
+  <td>200</td>
+  <td>ok</td>
+  <td>Bestand is correct ontvangen.</td>
+ </tr>
+ <tr>
+  <td>400</td>
+  <td>bad_request</td>
+  <td>Verzoek is ontvangen maar CSV-bestand voldoet niet aan de
+  specificaties en kan niet verwerkt worden.</td>
+ </tr>
+ <tr>
+  <td>403</td>
+  <td>forbidden</td>
+  <td>Gebruikersnaam of wachtwoord zijn incorrect.</td>
+ </tr>
+ <tr>
+  <td>405</td>
+  <td>method_not_allowed</td>
+  <td>Wanneer een andere methode dan POST wordt gebruikt.</td>
+ </tr>
+ <tr>
+  <td>503</td>
+  <td>unavailable</td>
+  <td>Wanneer de uploaddienst onbeschikbaar is of wanneer geprobeerd wordt
+  meerdere CSV-bestanden gelijktijdig te POST-en vanuit hetzelfde account.</td>
+ </tr>
+</table>
+
+<p>Het is niet mogelijk om gelijktijdig meerdere CSV-bestanden
+aan te leveren. Wanneer data in meerdere bestanden aangeleverd moet worden, is
+het noodzakelijk deze sequentieel af te handelen.</p>
+
+<p class="FootnoteText">
+<span class="FootnoteReference"><a href="#_ftnref1" name="_ftn1" title="">[1]</a></span>
+<a
+href="http://www.fietsberaad.nl/library/repository/bestanden/Gebruikershandleiding_dataplatform_uploaden-teldata.pdf">http://www.fietsberaad.nl/library/repository/bestanden/Gebruikershandleiding_dataplatform_uploaden-teldata.pdf</a>
+</p>
+
+</body>
+</html>
