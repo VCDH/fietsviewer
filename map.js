@@ -26,7 +26,38 @@ var markers = {};
 var maplayers = {
 	flow: {
 		name: 'Intensiteit',
+		unit: 'f/u',
+		unit_full: 'fietsers/uur',
 		active: true
+	}
+};
+var icons = {
+	flow: {
+		colordefault: L.icon({
+			iconUrl: 'img/icon_arrow.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow'
+		}),
+		color1: L.icon({
+			iconUrl: 'img/icon_arrow_blue-lighter.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color2: L.icon({
+			iconUrl: 'img/icon_arrow_blue.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color3: L.icon({
+			iconUrl: 'img/icon_arrow_blue-dark.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color4: L.icon({
+			iconUrl: 'img/icon_arrow_blue-darker.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		})
 	}
 };
 
@@ -155,14 +186,60 @@ function loadMarkers(layer) {
 			if (markerfound == false) {
 				var marker = L.marker([v.lat, v.lon], {
 					x_id: v.id,
-					icon: icon,
+					icon: icons[layer].colordefault,
 					rotationAngle: v.heading,
 					rotationOrigin: 'center',
 					title: v.location_id
 				}).addTo(map);
+				marker.bindPopup('Laden...');
+				marker.on('click', function(e) {
+					openMapPopup(e, layer, v.id)
+				});
 				markers[layer].push(marker);
 			}
 		});
+		loadLayerData(layer);
+	});
+}
+
+/*
+* Load marker's popup content
+*/
+function openMapPopup(e, layer, id) {
+	var popup = e.target.getPopup();
+	$.getJSON('markerpopup.php', { layer: layer, id: id })
+	.done( function(json) {
+		popup.setContent(json.popup);
+		popup.update();
+	})
+	.fail( function() {
+		popup.setContent('Fout: kan gegevens niet laden');
+		popup.update();
+	});
+}
+
+/*
+* Attach data values to the markers
+*/
+function loadLayerData(layer) {
+	$.getJSON('layerdata.php', { layer: layer, bounds: map.getBounds().toBBoxString() })
+	.done( function(json) {
+		//loop markers
+		if (markers.hasOwnProperty(layer)) {
+			for (var i = 0; i < markers[layer].length; i++) {
+				var id = markers[layer][i].options.x_id;
+				if ((typeof json[id] !== 'undefined') && (json[id].color > 0)) {
+					//data -> color
+					markers[layer][i].setIcon(icons[layer]['color' + json[id].color]);
+				}
+				else {
+					//no data -> grey
+					markers[layer][i].setIcon(icons[layer].colordefault);
+				}
+				//store current value
+				markers[layer][i].options.x_value = json[id].val;
+			}
+		}
 	});
 }
 

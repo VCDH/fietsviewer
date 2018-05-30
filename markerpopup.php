@@ -18,25 +18,25 @@
 */
 
 require('dbconnect.inc.php');
-require('functions/bounds_to_sql.php');
-
 
 if ($_GET['layer'] == 'flow') {
-	$qry = "SELECT `id`, `location_id`, `lat`, `lon`, `heading` FROM `mst_flow`
-	WHERE " . bounds_to_sql($_GET['bounds']);
+	$qry = "SELECT `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `quality` FROM `mst_flow`
+	LEFT JOIN `method_flow` ON `mst_flow`.`method` = `method_flow`.`name`
+	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
 	$res = mysqli_query($db['link'], $qry);
 	$json = array();
-	while ($data = mysqli_fetch_assoc($res)) {
-		$json[] = array('id' => (int) $data['id'],
-		'location_id' => $data['location_id'],
-		'lat' => (float) $data['lat'],
-		'lon' => (float) $data['lon'],
-		'heading' => (int) $data['heading']);
+	if ($data = mysqli_fetch_assoc($res)) {
+		$json['popup'] = '<table>
+		<tr><td>ID:</td><td>' . htmlspecialchars($data['location_id']) . '</td></tr>
+		<tr><td>Adres:</td><td>' . htmlspecialchars($data['address']) . '</td></tr>
+		<tr><td>Co&ouml;rdinaten:</td><td>' . $data['lat'] . ',' . $data['lon'] . '</td></tr>
+		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
+		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
+		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>
+		</table>';
 	}
 }
 
-
-
-echo json_encode($json);
+echo json_encode($json, JSON_FORCE_OBJECT);
 
 ?>

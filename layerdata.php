@@ -20,23 +20,18 @@
 require('dbconnect.inc.php');
 require('functions/bounds_to_sql.php');
 
-
 if ($_GET['layer'] == 'flow') {
 	$qry = "SELECT `id`, `location_id`, `lat`, `lon`, `heading` FROM `mst_flow`
 	WHERE " . bounds_to_sql($_GET['bounds']);
 	$res = mysqli_query($db['link'], $qry);
 	$json = array();
 	while ($data = mysqli_fetch_assoc($res)) {
-		$json[] = array('id' => (int) $data['id'],
-		'location_id' => $data['location_id'],
-		'lat' => (float) $data['lat'],
-		'lon' => (float) $data['lon'],
-		'heading' => (int) $data['heading']);
+		$json[(int) $data['id']] = array(
+		'val' => rand(0, 500),
+		'color' => rand(0, 4));
 	}
 }
 
-
-
-echo json_encode($json);
+echo json_encode($json, JSON_FORCE_OBJECT);
 
 ?>

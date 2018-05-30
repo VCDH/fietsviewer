@@ -17,26 +17,23 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-require('dbconnect.inc.php');
-require('functions/bounds_to_sql.php');
-
-
-if ($_GET['layer'] == 'flow') {
-	$qry = "SELECT `id`, `location_id`, `lat`, `lon`, `heading` FROM `mst_flow`
-	WHERE " . bounds_to_sql($_GET['bounds']);
-	$res = mysqli_query($db['link'], $qry);
-	$json = array();
-	while ($data = mysqli_fetch_assoc($res)) {
-		$json[] = array('id' => (int) $data['id'],
-		'location_id' => $data['location_id'],
-		'lat' => (float) $data['lat'],
-		'lon' => (float) $data['lon'],
-		'heading' => (int) $data['heading']);
+/*
+* function to check map's bbox string and convert to sql component
+* $bounds in format (str) southwest_lng,southwest_lat,northeast_lng,northeast_lat
+*/
+function bounds_to_sql($bounds) {
+	$bounds = explode(',', $bounds);
+	for ($i = 0; $i < 4; $i++) {
+		if (!is_numeric($bounds[$i]) || ($bounds[$i] < -180) || ($bounds[$i] > 180)) {
+			$bounds[$i] = 0;
+		}
 	}
+	$lat_lower = min($bounds[1], $bounds[3]);
+	$lat_upper = max($bounds[1], $bounds[3]);
+	$lon_lower = min($bounds[0], $bounds[2]);
+	$lon_upper = max($bounds[0], $bounds[2]);
+	
+	return ' `lat` BETWEEN '. $lat_lower . ' AND '. $lat_upper . ' 
+	AND `lon` BETWEEN '. $lon_lower . ' AND '. $lon_upper . ' ';
 }
-
-
-
-echo json_encode($json);
-
 ?>
