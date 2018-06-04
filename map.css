@@ -15,6 +15,14 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
 #map {
 	width: 100%;
 	height: 100%;
@@ -22,8 +30,12 @@
 
 #map-options-container {
 	position: absolute;
-	top: 16px;
+	top: 24px;
 	right: 16px;
+	z-index: 1500;
+}
+
+#menu-top-bar {
 	z-index: 1500;
 }
 

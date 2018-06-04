@@ -18,7 +18,7 @@
 -->
 <html lang="nl-nl">
 <head>
-	<title>fietsvᴉewer</title>
+	<title>fietsv&#7433;ewer</title>
 	<meta charset="utf-8">
 	<link rel="stylesheet" type="text/css" href="leaflet/leaflet.css">
 	<link rel="stylesheet" type="text/css" href="style.css">
@@ -47,5 +47,8 @@
 			</fieldset>
 		</div>
 	</div>
+	
+	<?php include('menu.inc.php'); ?>
+	
 </body>
 </html>
