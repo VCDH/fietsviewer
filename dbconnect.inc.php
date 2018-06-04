@@ -17,6 +17,6 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-require('config.inc.php');
+require('dbconfig.inc.php');
 $db['link'] = mysqli_connect($db['host'], $db['user'], $db['pass'], $db['database']);
 ?>

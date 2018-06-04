@@ -17,7 +17,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-$config_file_name = 'config.inc.php';
+$config_file_name = 'dbconfig.inc.php';
 $license_file_name = 'COPYING';
 $database_server = 'localhost';
 $database_user = '';
@@ -387,7 +387,7 @@ $db[\'pass\'] = \'' . $database_password . '\';
 $db[\'database\'] = \'' . $database_database . '\';
 ?>';
 file_put_contents($config_file_name, $config);
-echo 'Configuratiebestand is geinstalleerd naar config.inc.php' . PHP_EOL;
+echo 'Configuratiebestand is geinstalleerd naar ' . $config_file_name . PHP_EOL;
 
 /*
 * create tables
@@ -451,7 +451,6 @@ $qry[] = "CREATE TABLE `users` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 `username` VARCHAR(64) NOT NULL,
 `password` TINYTEXT NOT NULL,
-`token` TEXT NULL,
 `email` TINYTEXT NOT NULL,
 `name` TINYTEXT,
 `phone` TINYTEXT NULL,
@@ -468,8 +467,8 @@ $qry[] = "CREATE TABLE `user_login_tokens` (
 `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 `user_id` INT UNSIGNED NOT NULL,
 `token` TINYTEXT NOT NULL,
-`date_create` DATETIME,
-`date_lastchange` DATETIME,
+`date_create` DATETIME NOT NULL,
+`date_lastchange` DATETIME NOT NULL,
 `ip` TINYTEXT NOT NULL,
 `device` TINYTEXT,
 PRIMARY KEY (`id`),
