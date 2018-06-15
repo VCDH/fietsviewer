@@ -523,6 +523,36 @@ foreach($qry as $qry_this) {
 }
 
 /*
+* create upload dir
+*/
+section_upload_dir:
+require('config.inc.php');
+echo PHP_EOL;
+echo '===============================================================================' . PHP_EOL;
+echo 'Map voor bestandsuploads aanmaken' . PHP_EOL;
+echo '===============================================================================' . PHP_EOL;
+echo 'Uploadmap:' . PHP_EOL;
+echo getcwd() . '/' . $cfg['upload']['dir'] . PHP_EOL;
+echo PHP_EOL;
+//check if dir exists
+if (is_dir($cfg['upload']['dir'])) {
+	echo 'Uploadmap bestaat al.' . PHP_EOL;
+}
+else {
+	if (mkdir($cfg['upload']['dir'])) {
+		echo 'Uploadmap aangemaakt.' . PHP_EOL;
+	}
+	else {
+		echo 'Kan uploadmap niet aanmaken!.' . PHP_EOL;
+		echo 'Maak handmatig de hier boven vermelde map aan!' . PHP_EOL;
+		echo 'Druk op een toets om door te gaan.' . PHP_EOL;
+		cli_input();
+	}
+}
+echo PHP_EOL;
+
+
+/*
 * create admin account
 */
 section_admin_account:
@@ -546,6 +576,8 @@ echo 'Wachtwoord     : admin' . PHP_EOL;
 echo 'Voor een productieomgeving wordt aangeraden ' . PHP_EOL;
 echo 'om het wachtwoord direct te wijzigen!' . PHP_EOL;
 echo PHP_EOL;
+
+
 
 echo PHP_EOL;
 echo 'Gereed. Einde installatieprogramma.' . PHP_EOL;
