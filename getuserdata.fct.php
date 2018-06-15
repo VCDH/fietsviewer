@@ -31,7 +31,7 @@ function getuserdata($req = null) {
 	require('config.inc.php');
     //check if the user is logged in
     //retrieve cookie
-    $cookievalue = unserialize($_COOKIE[$cookie['name']]);
+    $cookievalue = unserialize($_COOKIE[$cfg['cookie']['name']]);
     if (!is_numeric($cookievalue[0])) {
         return FALSE;
     }

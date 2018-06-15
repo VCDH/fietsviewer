@@ -32,7 +32,7 @@ function user_logout() {
 	`token` = '" . mysqli_real_escape_string($db['link'], getuserdata('token')) . "'";
 
 	//unset cookie
-	setcookie($cookie['name'], '', time() - 3600, '/');
+	setcookie($cfg['cookie']['name'], '', time() - 3600, '/');
 	return TRUE;
 }
 
@@ -73,7 +73,7 @@ function user_login($username, $password) {
 			}
 
 			//set cookie
-			setcookie($cookie['name'], serialize(array($data['id'], $token)), time() + $cookie['expire'], '/');
+			setcookie($cfg['cookie']['name'], serialize(array($data['id'], $token)), time() + $cfg['cookie']['expire'], '/');
 
 			return TRUE;
 		}
