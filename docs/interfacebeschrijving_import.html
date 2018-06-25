@@ -26,7 +26,7 @@
 
 
 <p class="Title">fietsv&#7433;ewer | interfacebeschrijving import</p>
-<p class="Subtitle">Documentversie 01-05-2018</p>
+<p class="Subtitle">Documentversie 25-06-2018</p>
 
 <p>Er kan op twee manieren nieuwe data worden toegevoegd aan
 fietsv&#7433;ewer: handmatig of geautomatiseerd. In beide gevallen dient de
@@ -172,7 +172,7 @@ bij komen.</p>
  <tr>
   <td>periode-van<br>period-from</td>
   <td>Begin van de periode waarvoor de telwaarden gelden, bijvoorbeeld een
-  dat, week of maand. Format volgens ISO 8601</td>
+  dag, week of maand. Format volgens ISO 8601</td>
   <td>2016-02-28</td>
   <td>Ja</td>
  </tr>
@@ -221,6 +221,8 @@ met de correcte weergave op de kaart.</p>
 wordt CES/CEST verondersteld. Houd er in dat geval rekening mee dat bij de
 overgang naar wintertijd een uur data niet juist gecategoriseerd wordt.
 Aanbevolen wordt om tijdstippen altijd in UTC aan te leveren.</p>
+
+<p><b>Periode-tot/tijd-tot</b>: Wanneer voor <i>periode-tot/period-to</i> een tijdstip is opgegeven en dit afwijkt van het tijdstip in <i>tijd-tot/time-to</i>, wordt het kleinste van beide tijdstippen genomen.</p>
 
 <h3><a name="_Toc512530253a"></a>Decimaalscheidingsteken</h3>
 
@@ -349,6 +351,9 @@ meta-informatie te herstellen.</p>
 mogelijk om deze voor volgende leveringen (of rijen in dezelfde levering) weg
 te laten. In dat geval wordt de eerder gestuurde informatie gehandhaafd.</p>
 
+<p>Wanneer voor een ID nooit eerder meta-informatie is aangeleverd, kan de 
+  betreffende datarij niet worden ingelezen.</p>
+
 <p>Het veld kwaliteit wordt als een bijzondere vorm van
 meta-informatie beschouwd. Per meetwaarde wordt de kwaliteitswaarde bewaard,
 maar na iedere import wordt voor de betroffen meetpunten een (nieuwe)
@@ -366,10 +371,7 @@ wanneer de tijdstempels niet identiek zijn.</p>
 
 <h2><a name="_Toc512530262"></a>Bestandsintegriteit</h2>
 
-<p>Aangeleverde bestanden worden gecontroleerd op integriteit.
-Wanneer een bestand niet voldoet (verplichte kolom niet aanwezig, verkeerd
-dataformat in een veld of verplicht veld niet ingevuld) wordt het hele bestand
-afgekeurd.</p>
+<p>Aangeleverde bestanden worden gecontroleerd op de aanwezigheid van een rij met kolomnamen met hierin de verplichte verplichte kolommen. Wanneer een verplichte kolomnaam niet aanwezig is, wordt het hele bestand afgekeurd. Bij het verwerken van het bestand wordt ook naar de integriteit van iedere datarij gekeken. Wanneer een rij niet voldoet (verkeerd dataformat of verplicht veld niet ingevuld), dan wordt de betreffende rij afgekeurd en niet ge&iuml;mporteerd. Importeren wordt hervat met de volgende rij.</p>
 
 <h1><a name="_Toc512530263"></a>Aanleveren</h1>
 

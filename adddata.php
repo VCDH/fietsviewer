@@ -95,26 +95,24 @@ function check_data_format($file) {
     //get column names
     $colnames = str_getcsv($line, $delimiter);
     //check dpf format
-    $mandatory_keys = check_format_dpf_flow($colnames);
-    if ($mandatory_keys == FALSE) {
+    $format_check = check_format_dpf_flow($colnames);
+    if ($format_check == FALSE) {
         return FALSE;
     }
     else {
         $format = 'dpf-flow';
     }
-    //check first row for integrity
+    //check if there is a data row
     $row1 = fgetcsv($handle, null, $delimiter);
-    foreach ($mandatory_keys as $col) {
-        if (empty($row1[$col])) {
-            return FALSE;
-        }
+    if ($row1 == FALSE) {
+        return FALSE;
     }
     return $format;
 }
 
 /*
-* function to check "data platform fiets" format
-* returns FALSE if it doesn't match or an array with for each column (in order) whether or not the column is mandatory (given in TRUE/FALSE)
+* function to check header row for "data platform fiets" format
+* returns FALSE if it doesn't match or TRUE if mandatory columns are available
 */
 function check_format_dpf_flow($arr_colnames) {
     $mandatory_cols = array(
@@ -131,7 +129,6 @@ function check_format_dpf_flow($arr_colnames) {
     );
     //set $arr_colnames to lowercase
     $arr_colnames = array_map('strtolower', $arr_colnames);
-    $mandatory_keys = array();
     //check for each mandatory col
     foreach ($mandatory_cols as $cols) {
         //assume false
@@ -141,7 +138,6 @@ function check_format_dpf_flow($arr_colnames) {
             $key = array_search($col, $arr_colnames);
             if ($key !== FALSE) {
                 $assume = TRUE;
-                $mandatory_keys[] = $key;
                 break;
             }
         }
@@ -150,7 +146,8 @@ function check_format_dpf_flow($arr_colnames) {
             return FALSE;
         }
     }
-    return $mandatory_keys;
+    //all mandatory columns present
+    return TRUE;
 }
 
 /*
@@ -315,9 +312,9 @@ if (!empty($_FILES)) {
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
-            echo $row[0];
-            echo '</td><td>';
             echo $row[4];
+            echo '</td><td>';
+            echo $row[0];
             echo '</td><td>';
             echo htmlspecialchars($row[1]);
             echo '</td><td>';

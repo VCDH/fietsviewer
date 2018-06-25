@@ -210,6 +210,7 @@ function process_uploaded_file($file, $format, $prefix) {
                 $date_to = $date_to2;
             }
         }
+        //TODO: datum/tijd omzetten naar UTC.
         //TODO: dayofweek is not interpreted
         //per
         if (($line[$cols['data']['per']] != 1) || ($line[$cols['data']['per']] != 2)) {

@@ -101,3 +101,35 @@ a, a:link {
 a:hover {
 	text-decoration: none;
 }
+
+table {
+	border-collapse: collapse;
+	margin-bottom: 1em;
+}
+th {
+	border: solid #FFC000 1px;
+	border-right: none;
+	background-color :#FFC000;
+	text-transform: uppercase;
+	font-weight: bold;
+	color: #FFF;
+	text-align: left;
+	padding: 2px 4px;
+}
+tr:nth-child(even) {
+	background-color: #FFF2CC;
+	page-break-inside:avoid;
+}
+tr:nth-child(odd) {
+	background-color: #FFF;
+	page-break-inside:avoid;
+}
+td {
+	border: solid #FFD966 1px;
+	padding: 2px 4px;
+	vertical-align: top;
+}
+td:nth-child(1) {
+	font-weight: bold;
+	white-space: nowrap;
+}
