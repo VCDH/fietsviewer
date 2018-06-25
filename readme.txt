@@ -60,9 +60,11 @@ De installatie maakt de databasetabellen aan. Voer install.php uit vanuit de
 opdrachtregel om het installatieprogramma te doorlopen. Hou de 
 database-credentials bij de hand, hier wordt tijdens de installatie om gevraagd.
 
-Bij het doorlopen van het programma wordt het bestand config.inc.php aangemaakt.
-Dit bestand is hierna desgewenst handmatig aan te passen, maar wordt 
+Bij het doorlopen van het programma wordt het bestand dbconfig.inc.php 
+aangemaakt. Dit bestand is hierna desgewenst handmatig aan te passen, maar wordt 
 overschreven wanneer het installatieprogramma opnieuw wordt uitgevoerd.
+Overige configuratie staat in config.inc.php. Deze hoeft normaal gesproken niet 
+aangepast te worden en is daardoor geen onderdeel van het installatieprogramma.
 
 
 ================================================================================

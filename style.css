@@ -20,6 +20,9 @@ html, body {
 	font-size: small;
 	margin-top: 24px;
 }
+body {
+	padding: 16px;
+}
 
 fieldset {
 	border: 1px solid #666;
@@ -50,4 +53,51 @@ legend {
 th {
 	font-weight: bold;
 	text-align: left;
+}
+
+p.error, p.warning, p.info, p.success {
+	padding: 8px;
+	font-weight: bold;
+}
+p.error {
+	border: 1px solid #A30500;
+	background-color: #ED8980;
+}
+p.warning {
+	border: 1px solid #E15601;
+	background-color: #FFDE69;
+}
+p.info {
+	border: 1px solid #293575;
+	background-color: #ADCDED;
+}
+p.success {
+	border: 1px solid #155429;
+	background-color: #98C496;
+}
+p.error::before {
+	content: 'Fout: ';
+}
+p.warning::before {
+	content: 'Waarschuwing: ';
+}
+p.info::before {
+	content: 'Info: ';
+}
+p.success::before {
+	content: 'Geslaagd: ';
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	color: #155429;
+	text-transform: capitalize;
+}
+
+a, a:link {
+	color: #293575;
+	text-decoration: underline;
+}
+a:hover {
+	text-decoration: none;
 }

@@ -434,6 +434,19 @@ FOREIGN KEY (`method`) REFERENCES `method_flow` (`name`)
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
+$qry[] = "CREATE TABLE `data_flow` (
+`id` INT UNSIGNED NOT NULL,
+`datetime_from` DATETIME NOT NULL,
+`datetime_to` DATETIME NOT NULL,
+`flow_pos` FLOAT UNSIGNED NOT NULL,
+`flow_neg` FLOAT UNSIGNED NULL,
+`quality` INT(3) NULL,
+PRIMARY KEY (`id`, `datetime_from`, `datetime_to`),
+FOREIGN KEY (`id`) REFERENCES `mst_flow` (`id`)
+)
+ENGINE = 'InnoDB'
+COLLATE 'utf8_general_ci'";
+
 $qry[] = "CREATE TABLE `organisations` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 `name` TEXT NOT NULL,
@@ -484,6 +497,30 @@ $qry[] = "CREATE TABLE `organisation_prefixes` (
 PRIMARY KEY (`id`),
 UNIQUE KEY (`prefix`),
 FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
+)
+ENGINE = 'InnoDB'
+COLLATE 'utf8_general_ci'";
+
+$qry[] = "INSERT INTO `organisation_prefixes` 
+	(`id`, `organisation_id`, `prefix`)
+	VALUES
+	(1, 1, 'SYS')";
+
+$qry[] = "CREATE TABLE `upload_queue` (
+`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+`user_id` INT UNSIGNED NOT NULL,
+`prefix_id` INT UNSIGNED NOT NULL,
+`filename` TINYTEXT NOT NULL,
+`md5` VARCHAR(32) NOT NULL,
+`datatype` VARCHAR(32) NOT NULL,
+`processed` BOOLEAN NOT NULL,
+`process_error` TEXT NULL DEFAULT NULL,
+`process_time` INT DEFAULT NULL,
+`date_create` DATETIME NOT NULL,
+`date_lastchange` DATETIME NOT NULL,
+PRIMARY KEY (`id`),
+FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+FOREIGN KEY (`prefix_id`) REFERENCES `organisation_prefixes` (`id`)
 )
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
@@ -565,17 +602,24 @@ include('password_compat/lib/password.php');
 $password = password_hash('admin', PASSWORD_DEFAULT);
 //insert into db
 $qry = "INSERT INTO `users`
-(`id`, `username`, `password`, `accesslevel`, `organisation_id`) 
+(`username`, `password`, `accesslevel`, `organisation_id`) 
 VALUES
-(1, 'admin', '".$password."', 999, 1)";
+('admin', '".$password."', 999, 1)";
 $res = @mysqli_query($db['link'], $qry);
 
-echo 'Er is een adminaccount aangemaakt met de volgende inloggegevens:' . PHP_EOL;
-echo 'Gebruikersnaam : admin' . PHP_EOL;
-echo 'Wachtwoord     : admin' . PHP_EOL;
-echo 'Voor een productieomgeving wordt aangeraden ' . PHP_EOL;
-echo 'om het wachtwoord direct te wijzigen!' . PHP_EOL;
+if ($res == TRUE) {
+	echo 'Er is een adminaccount aangemaakt met de volgende inloggegevens:' . PHP_EOL;
+	echo 'Gebruikersnaam : admin' . PHP_EOL;
+	echo 'Wachtwoord     : admin' . PHP_EOL;
+	echo 'Voor een productieomgeving wordt aangeraden ' . PHP_EOL;
+	echo 'om het wachtwoord direct te wijzigen!' . PHP_EOL;
+
+}
+else {
+	echo 'Bestaand adminaccount ongewijzigd.';
+}
 echo PHP_EOL;
+
 
 
 

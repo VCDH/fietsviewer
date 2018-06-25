@@ -30,7 +30,7 @@ function user_logout() {
 	$qry = "DELETE FROM `user_login_tokens`
 	WHERE `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
 	`token` = '" . mysqli_real_escape_string($db['link'], getuserdata('token')) . "'";
-
+	mysqli_query($db['link'], $qry);
 	//unset cookie
 	setcookie($cfg['cookie']['name'], '', time() - 3600, '/');
 	return TRUE;
