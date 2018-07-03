@@ -1,6 +1,7 @@
 /*
 *	fietsviewer - grafische weergave van fietsdata
-*   Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+*   Copyright (C) 2018 Gemeente Den Haag, Netherlands
+*   Developed by Jasper Vries
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -97,7 +98,7 @@ function initMap() {
 */
 function getMapStyle() {
 	//get map style
-	if ((typeof onloadCookie !== 'undefined') && ((onloadCookie[2] == 'map-style-grayscale') || (onloadCookie[2] == 'map-style-lighter') || (onloadCookie[2] == 'map-style-oldskool'))) {
+	if ((typeof onloadCookie !== 'undefined') && ((onloadCookie[2] == 'map-style-grayscale') || (onloadCookie[2] == 'map-style-lighter')  || (onloadCookie[2] == 'map-style-dark') || (onloadCookie[2] == 'map-style-oldskool'))) {
 		mapStyle = onloadCookie[2];
 	}
 	else {
@@ -113,7 +114,7 @@ function getMapStyle() {
 * Set the map style and store it in the cookie
 */
 function setMapStyle(style_id) {
-	if ((style_id == 'map-style-grayscale') || (style_id == 'map-style-lighter') || (style_id == 'map-style-oldskool')) {
+	if ((style_id == 'map-style-grayscale') || (style_id == 'map-style-lighter') || (style_id == 'map-style-dark') || (style_id == 'map-style-oldskool')) {
 		mapStyle = style_id;
 	}
 	else {
@@ -128,8 +129,9 @@ function setMapStyle(style_id) {
 function updateMapStyle() {
 	$('img.leaflet-tile').removeClass('map-style-grayscale');
 	$('img.leaflet-tile').removeClass('map-style-lighter');
+	$('img.leaflet-tile').removeClass('map-style-dark');
 	$('img.leaflet-tile').removeClass('map-style-oldskool');
-	if ((mapStyle == 'map-style-grayscale') || (mapStyle == 'map-style-lighter') || (mapStyle == 'map-style-oldskool')) {
+	if ((mapStyle == 'map-style-grayscale') || (mapStyle == 'map-style-lighter') ||  (mapStyle == 'map-style-dark') || (mapStyle == 'map-style-oldskool')) {
 		$('img.leaflet-tile').addClass(mapStyle);
 	}
 }

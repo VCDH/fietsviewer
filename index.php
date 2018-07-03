@@ -39,6 +39,7 @@
 				<input type="radio" name="map-style" id="map-style-default"><label for="map-style-default">Standaard</label><br>
 				<input type="radio" name="map-style" id="map-style-lighter"><label for="map-style-lighter">Lichter</label><br>
 				<input type="radio" name="map-style" id="map-style-grayscale"><label for="map-style-grayscale">Grijswaarden</label><br>
+				<input type="radio" name="map-style" id="map-style-dark"><label for="map-style-dark">Donker</label><br>
 				<input type="radio" name="map-style" id="map-style-oldskool"><label for="map-style-oldskool">Ouderwetsch</label>
 			</fieldset>
 		</div>

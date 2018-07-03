@@ -1,6 +1,7 @@
 /*
 *	fietsviewer - grafische weergave van fietsdata
-*   Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+*   Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -43,11 +44,23 @@ html, body {
 	background-color: #FFF;
 }
 
+#map-style legend, #map-layers legend {
+	color: #000;
+	text-shadow:
+    -1px -1px 0 #FFF,
+    1px -1px 0 #FFF,
+    -1px 1px 0 #FFF,
+    1px 1px 0 #FFF;
+}
+
 img.map-style-grayscale {
 	filter: grayscale(1) brightness(1.1);
 }
 img.map-style-lighter {
 	filter: brightness(1.2) contrast(1.1) grayscale(0.2);
+}
+img.map-style-dark {
+	filter: invert(1) grayscale(1);
 }
 img.map-style-oldskool {
 	filter: sepia(0.5) brightness(1.05);
