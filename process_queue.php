@@ -210,14 +210,24 @@ function process_uploaded_file($file, $format, $prefix) {
                 $date_to = $date_to2;
             }
         }
-        //TODO: datum/tijd omzetten naar UTC.
+        //set date to UTC
+        date_timezone_set($date_from, timezone_open('UTC'));
+        date_timezone_set($date_to, timezone_open('UTC'));
         //TODO: dayofweek is not interpreted
+
         //per
         if (($line[$cols['data']['per']] != 1) || ($line[$cols['data']['per']] != 2)) {
             $line[$cols['data']['per']] = 0;
         }
-        
-        //TODO: normalize flow
+        //calculate data period for flow normalization
+        $data_period = 3600;
+        if ($line[$cols['data']['per']] == 0) {
+            $data_period = date_timestamp_get($date_to) - date_timestamp_get($date_from) + 1;
+        }
+        elseif ($line[$cols['data']['per']] == 2) {
+            $data_period = 86400;
+        }
+
         //bicycle
         if (!is_numeric($line[$cols['data']['flow']])) {
             $errors[] = 'Invalid flow on line ' . $i;
@@ -225,16 +235,22 @@ function process_uploaded_file($file, $format, $prefix) {
         }
         //bicycle-to
         if (is_numeric($line[$cols['data']['flow_pos']])) {
-            $flow_pos = $line[$cols['data']['flow_pos']];
-            
+            $flow_pos = $line[$cols['data']['flow_pos']]; 
         }
         else {
             $flow_pos = $line[$cols['data']['flow']];
         }
+        //normalize flow-pos
+        if (($line[$cols['data']['per']] == 0) || ($line[$cols['data']['per']] == 2)) {
+            $flow_pos = $flow_pos * 3600 / $data_period;
+        }
         //bicycle-from
-        if (!
-        is_numeric($line[$cols['data']['flow_neg']])) {
+        if (is_numeric($line[$cols['data']['flow_neg']])) {
             $flow_neg = $line[$cols['data']['flow_neg']];
+            //normalize flow-neg
+            if (($line[$cols['data']['per']] == 0) || ($line[$cols['data']['per']] == 2)) {
+                $flow_neg = $flow_neg * 3600 / $data_period;
+            }
         }
         else {
             $flow_neg = null;
@@ -314,7 +330,7 @@ function process_uploaded_file($file, $format, $prefix) {
         }
         $i++;
     }
-    //TODO: import tmp file to database
+    //import tmp file to database
     fclose($handle_data);
     $qry = "LOAD DATA LOCAL INFILE '" . $tmp_data_file . "'
     REPLACE
