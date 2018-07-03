@@ -1,7 +1,8 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,19 +21,34 @@
 require('dbconnect.inc.php');
 
 if ($_GET['layer'] == 'flow') {
-	$qry = "SELECT `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `quality` FROM `mst_flow`
-	LEFT JOIN `method_flow` ON `mst_flow`.`method` = `method_flow`.`name`
-	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
+	$qry = "SELECT `mst_flow`.`id` AS `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `flow_pos`, `flow_neg`, `t1`.`quality` AS `quality` 
+	FROM `mst_flow`
+	LEFT JOIN `method_flow`
+	ON `mst_flow`.`method` = `method_flow`.`name`
+	LEFT JOIN 
+	(SELECT * FROM `data_flow` 
+	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
+	AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`) 
+	AS `t1`
+    ON `mst_flow`.`id` = `t1`.`id`
+	WHERE `mst_flow`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
+
 	$res = mysqli_query($db['link'], $qry);
 	$json = array();
 	if ($data = mysqli_fetch_assoc($res)) {
 		$json['popup'] = '<table>
-		<tr><td>ID:</td><td>' . htmlspecialchars($data['location_id']) . '</td></tr>
+		<tr><th>ID:</th><th>' . htmlspecialchars($data['location_id']) . '</th></tr>
 		<tr><td>Adres:</td><td>' . htmlspecialchars($data['address']) . '</td></tr>
 		<tr><td>Co&ouml;rdinaten:</td><td>' . $data['lat'] . ',' . $data['lon'] . '</td></tr>
 		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
 		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
-		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>
+		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>' .
+		( ($data['flow_neg'] != null) ?
+		'<tr><td>Intensiteit positief:</td><td>' . $data['flow_pos'] . (($data['flow_pos'] != null) ? ' per uur' : '') . '</td></tr>
+		<tr><td>Intensiteit negatief:</td><td>' . $data['flow_neg'] . ' per uur</td></tr>'
+		: ''
+		) .
+		'<tr><td>Intensiteit totaal:</td><td>' . ($data['flow_pos'] + $data['flow_neg']) . ' per uur</td></tr>
 		</table>';
 	}
 }

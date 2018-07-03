@@ -193,7 +193,7 @@ function loadMarkers(layer) {
 					rotationOrigin: 'center',
 					title: v.location_id
 				}).addTo(map);
-				marker.bindPopup('Laden...');
+				marker.bindPopup('Laden...', { maxWidth: 500 });
 				marker.on('click', function(e) {
 					openMapPopup(e, layer, v.id)
 				});
@@ -209,7 +209,7 @@ function loadMarkers(layer) {
 */
 function openMapPopup(e, layer, id) {
 	var popup = e.target.getPopup();
-	$.getJSON('markerpopup.php', { layer: layer, id: id })
+	$.getJSON('markerpopup.php', { layer: layer, id: id, date: $('#map-date').val(), time: $('#map-time').val() })
 	.done( function(json) {
 		popup.setContent(json.popup);
 		popup.update();
@@ -221,10 +221,21 @@ function openMapPopup(e, layer, id) {
 }
 
 /*
+* Update all layer data without updating markers (call UpdateMapLayers() if you want both)
+*/
+function updateLayerData() {
+	$.each(maplayers, function(layer, options) {
+		if (options.active == true) {
+			loadLayerData(layer);
+		}
+	});
+}
+
+/*
 * Attach data values to the markers
 */
 function loadLayerData(layer) {
-	$.getJSON('layerdata.php', { layer: layer, bounds: map.getBounds().toBBoxString() })
+	$.getJSON('layerdata.php', { layer: layer, bounds: map.getBounds().toBBoxString(), date: $('#map-date').val(), time: $('#map-time').val() })
 	.done( function(json) {
 		//loop markers
 		if (markers.hasOwnProperty(layer)) {
@@ -233,13 +244,15 @@ function loadLayerData(layer) {
 				if ((typeof json[id] !== 'undefined') && (json[id].color > 0)) {
 					//data -> color
 					markers[layer][i].setIcon(icons[layer]['color' + json[id].color]);
+					//store current value
+					markers[layer][i].options.x_value = json[id].val;
 				}
 				else {
 					//no data -> grey
 					markers[layer][i].setIcon(icons[layer].colordefault);
+					//store current value
+					markers[layer][i].options.x_value = null;
 				}
-				//store current value
-				markers[layer][i].options.x_value = json[id].val;
 			}
 		}
 	});
@@ -301,6 +314,46 @@ function drawLayerGUI() {
 }
 
 /*
+* Date control UI
+*/
+function dateControlUI(action) {
+	//get date and time
+	var date = $('#map-date').val();
+	var time = $('#map-time').val();
+	var datetime = new Date(date + ' ' + time);
+	//apply calculation
+	if (action == 'map-timecontrol-add-q') {
+		datetime.setMinutes(datetime.getMinutes() + 15);
+	}
+	else if (action == 'map-timecontrol-sub-q') {
+		datetime.setMinutes(datetime.getMinutes() - 15);
+	}
+	else if (action == 'map-timecontrol-add-h') {
+		datetime.setHours(datetime.getHours() + 1);
+	}
+	else if (action == 'map-timecontrol-sub-h') {
+		datetime.setHours(datetime.getHours() - 1);
+	}
+	else if (action == 'map-timecontrol-add-d') {
+		datetime.setDate(datetime.getDate() + 1);
+	}
+	else if (action == 'map-timecontrol-sub-d') {
+		datetime.setDate(datetime.getDate() - 1);
+	}
+	else if (action == 'map-timecontrol-add-w') {
+		datetime.setDate(datetime.getDate() + 7);
+	}
+	else if (action == 'map-timecontrol-sub-w') {
+		datetime.setDate(datetime.getDate() - 7);
+	}
+	//set date and time
+	$('#map-date').val(datetime.getFullYear().toString().padStart(4, '0') + '-' + (datetime.getMonth() + 1).toString().padStart(2, '0') + '-' + datetime.getDate().toString().padStart(2, '0'));
+	$('#map-time').val(datetime.getHours().toString().padStart(2, '0') + ':' + datetime.getMinutes().toString().padStart(2, '0'));	
+
+	updateLayerData();
+}
+
+/*
 * document.ready
 */
 $(function() {
@@ -313,4 +366,14 @@ $(function() {
 		updateMapStyle();
 	});
 	drawLayerGUI();
+	//date controle UI
+	$('#map-timecontrol-container li').click( function () {
+		dateControlUI($(this).attr('id'));
+	});
+	$('#map-date').change( function() {
+		updateLayerData();
+	});
+	$('#map-time').change( function() {
+		updateLayerData();
+	});
 });

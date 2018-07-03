@@ -49,6 +49,25 @@
 			</fieldset>
 		</div>
 	</div>
+
+	<div id="map-timecontrol-container">
+		<ul>
+			<li title="1 week eerder" id="map-timecontrol-sub-w">-1w</li>
+			<li title="1 dag eerder" id="map-timecontrol-sub-d">-1d</li>
+			<li title="1 uur eerder" id="map-timecontrol-sub-h">-1h</li>
+			<li title="1 kwartier eerder" id="map-timecontrol-sub-q">-&frac14;h</li>
+		</ul>
+		<div id="map-timecontrol-input-container">
+			<input type="date" id="map-date" value="<?php echo date('Y-m-d', time() - 24*60*60); ?>" autocomplete="off" required>
+			<input type="time" id="map-time" value="<?php echo date('H:i'); ?>" autocomplete="off" required>
+		</div>
+		<ul>
+			<li title="1 kwartier later" id="map-timecontrol-add-q">+&frac14;h</li>
+			<li title="1 uur later" id="map-timecontrol-add-h">+1h</li>
+			<li title="1 dag later" id="map-timecontrol-add-d">+1d</li>
+			<li title="1 week later" id="map-timecontrol-add-w">+1w</li>
+		</ul>
+	</div>
 	
 	<?php include('menu.inc.php'); ?>
 	
