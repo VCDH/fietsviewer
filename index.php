@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,5 +51,6 @@
 	
 	<?php include('menu.inc.php'); ?>
 	
+	<script src="browsersupport.js"></script>
 </body>
 </html>
