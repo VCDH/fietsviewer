@@ -48,7 +48,7 @@ if ($_GET['layer'] == 'flow') {
 		<tr><td>Intensiteit negatief:</td><td>' . $data['flow_neg'] . ' per uur</td></tr>'
 		: ''
 		) .
-		'<tr><td>Intensiteit totaal:</td><td>' . ($data['flow_pos'] + $data['flow_neg']) . ' per uur</td></tr>
+		'<tr><td>Intensiteit totaal:</td><td>' . (($data['flow_pos'] == null) ? 'geen data voor tijdstip' : ($data['flow_pos'] + $data['flow_neg']) . ' per uur') . '</td></tr>
 		</table>';
 	}
 }

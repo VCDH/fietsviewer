@@ -70,9 +70,10 @@ img.map-style-oldskool {
 	z-index: 1500;
 	position: absolute;
 	bottom: 32px;
-	left:  calc(50% - 300px);
-	width: 600px;
-	text-align: center;
+	left: 0;
+	width: 100%;
+	display: flex;
+  	justify-content: center;
 }
 #map-timecontrol-container ul {
 	list-style-type: none;

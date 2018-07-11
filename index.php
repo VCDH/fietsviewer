@@ -67,6 +67,7 @@
 			<li title="1 dag later" id="map-timecontrol-add-d">+1d</li>
 			<li title="1 week later" id="map-timecontrol-add-w">+1w</li>
 		</ul>
+		<div class="clear"></div>
 	</div>
 	
 	<?php include('menu.inc.php'); ?>

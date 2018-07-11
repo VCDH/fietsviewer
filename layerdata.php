@@ -47,8 +47,6 @@ if ($_GET['layer'] == 'flow') {
         //add to output
         $json[(int) $data['id']] = array(
 		'val' => $data['flow_pos'] + $data['flow_neg'],
-		'flow_pos' => $data['flow_pos'],
-		'flow_neg' => $data['flow_neg'],
 		'quality' => $data['quality'],
 		'color' => $color);
 	}
