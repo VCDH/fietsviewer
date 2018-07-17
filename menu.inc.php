@@ -1,7 +1,8 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@ require_once('getuserdata.fct.php');
 
 $menu = array (
     array('href' => 'index.php', 'title' => 'kaart weergeven', 'access' => 'all', 'block' => 1),
-    array('href' => 'analyze.php', 'title' => 'analyse maken', 'access' => 'all', 'block' => 1),
+    array('href' => 'request.php', 'title' => 'analyse maken', 'access' => 'login', 'block' => 1, 'maponly' => FALSE),
     array('href' => 'results.php', 'title' => 'mijn analyses', 'access' => 'login', 'block' => 1),
     array('href' => 'about.php', 'title' => 'over fietsv&#7433;ewer', 'access' => 'all', 'block' => 2),
     array('href' => 'help.php', 'title' => 'help', 'access' => 'all', 'block' => 2),
@@ -40,14 +41,14 @@ echo '<div id="menu-top-bar">';
 echo '<div id="menu-top-bar-1">';
 echo '<strong>fietsv&#7433;ewer</strong>';
 foreach ($menu as $item) {
-    if (($item['block'] == 1) && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) && (($item['access'] == 'all') || (($login == TRUE) && ($item['access'] == 'login')) || (($login == FALSE) && ($item['access'] == 'logout')))) {
+    if (($item['block'] == 1) && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) && (($item['access'] == 'all') || (($login == TRUE) && ($item['access'] == 'login')) || (($login == FALSE) && ($item['access'] == 'logout'))) && (($item['maponly'] != TRUE) || ($currentpage == 'index.php'))) {
         echo ' | <a href="' . $item['href'] . '" title="' . $item['title'] . '">' . $item['title'] . '</a>';
     }
 }
 echo '</div>';
 echo '<div id="menu-top-bar-2">';
 foreach ($menu as $item) {
-    if (($item['block'] == 2) && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) && (($item['access'] == 'all') || (($login == TRUE) && ($item['access'] == 'login')) || (($login == FALSE) && ($item['access'] == 'logout')))) {
+    if (($item['block'] == 2) && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) && (($item['access'] == 'all') || (($login == TRUE) && ($item['access'] == 'login')) || (($login == FALSE) && ($item['access'] == 'logout'))) && (($item['maponly'] != TRUE) || ($currentpage == 'index.php'))) {
         echo '<a href="' . $item['href'] . '" title="' . $item['title'] . '">' . $item['title'] . '</a> | ';
     }
 }

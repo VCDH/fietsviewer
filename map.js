@@ -354,6 +354,39 @@ function dateControlUI(action) {
 }
 
 /*
+* handle posting map bounds to data request page
+*/
+function openDataRequestPage() {
+	//get map layers and IDs
+	var activeMarkers= {};
+	//loop active layers
+	$.each(maplayers, function(layer, options) {
+		if ((options.active == true) && markers.hasOwnProperty(layer)) {
+			//check if layer has entry in activeMarkers object and add it if not
+			if (!activeMarkers.hasOwnProperty(layer)) {
+				activeMarkers[layer] = [];
+			}
+			//find visible markers
+			for (var i = 0; i < markers[layer].length; i++) {
+				var id = markers[layer][i].options.x_id;
+				activeMarkers[layer].push(id);
+			}
+		}
+	});
+	//insert form and post it
+	var form = document.createElement('form');
+	form.method = 'post';
+	form.action = 'request.php';
+	var input = document.createElement('input');
+	input.name = 'markers';
+	input.value = JSON.stringify(activeMarkers);
+	form.appendChild(input);
+	form.style.display = "none";
+	document.body.appendChild(form);
+	form.submit();
+}
+
+/*
 * document.ready
 */
 $(function() {
@@ -375,5 +408,10 @@ $(function() {
 	});
 	$('#map-time').change( function() {
 		updateLayerData();
+	});
+	//handle posting map bounds to data request page
+	$('#menu-top-bar a[href="request.php"]').click( function (event) {
+		event.preventDefault();
+		openDataRequestPage();
 	});
 });

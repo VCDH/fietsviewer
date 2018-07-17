@@ -140,6 +140,13 @@ fieldset th, fieldset td, fieldset tr:nth-child(even), fieldset tr:nth-child(odd
 	background: none;
 	font-weight: normal;
 }
+input {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+dt {
+	font-weight: bold;
+}
 
 ul.blank {
 	list-style: none;
