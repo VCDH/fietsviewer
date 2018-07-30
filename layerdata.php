@@ -51,6 +51,36 @@ if ($_GET['layer'] == 'flow') {
 		'color' => $color);
 	}
 }
+elseif ($_GET['layer'] == 'rln') {
+	$qry = "SELECT `mst_rln`.`id` AS `id`, `location_id`, `red_light_negation`, `data_rln`.`quality` AS `quality` FROM `mst_rln`
+    LEFT JOIN `data_rln`
+    ON `mst_rln`.`id` = `data_rln`.`id`
+    WHERE " . bounds_to_sql($_GET['bounds']) . "
+    AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`";
+	$res = mysqli_query($db['link'], $qry);
+	$json = array();
+	while ($data = mysqli_fetch_assoc($res)) {
+        //calculate color
+        $color = 0;
+        if (($data['red_light_negation']) > 0) {
+            $color = 1;
+        }
+        if (($data['red_light_negation']) > 1) {
+            $color = 2;
+        }
+        if (($data['red_light_negation']) > 2) {
+            $color = 3;
+        }
+        if (($data['red_light_negation']) > 4) {
+            $color = 4;
+        }
+        //add to output
+        $json[(int) $data['id']] = array(
+		'val' => $data['red_light_negation'],
+		'quality' => $data['quality'],
+		'color' => $color);
+	}
+}
 
 echo json_encode($json, JSON_FORCE_OBJECT);
 

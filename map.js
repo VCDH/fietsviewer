@@ -30,6 +30,12 @@ var maplayers = {
 		unit: 'f/u',
 		unit_full: 'fietsers/uur',
 		active: true
+	},
+	rln: {
+		name: 'Rood Licht Negatie',
+		unit: 'u<sup>-1</sup>',
+		unit_full: 'aantal/uur',
+		active: true
 	}
 };
 var icons = {
@@ -56,6 +62,33 @@ var icons = {
 		}),
 		color4: L.icon({
 			iconUrl: 'img/icon_arrow_blue-darker.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		})
+	},
+	rln: {
+		colordefault: L.icon({
+			iconUrl: 'img/icon_bars_0.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow'
+		}),
+		color1: L.icon({
+			iconUrl: 'img/icon_bars_1.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color2: L.icon({
+			iconUrl: 'img/icon_bars_2.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color3: L.icon({
+			iconUrl: 'img/icon_bars_3.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color4: L.icon({
+			iconUrl: 'img/icon_bars_5.png',
 			iconSize: [16,16],
 			className: 'map-icon-flow',
 		})
