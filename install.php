@@ -1,7 +1,8 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -441,10 +442,9 @@ $qry[] = "CREATE TABLE `data_flow` (
 `flow_pos` FLOAT UNSIGNED NOT NULL,
 `flow_neg` FLOAT UNSIGNED NULL,
 `quality` INT(3) NULL,
-PRIMARY KEY (`id`, `datetime_from`, `datetime_to`),
-FOREIGN KEY (`id`) REFERENCES `mst_flow` (`id`)
+PRIMARY KEY (`id`, `datetime_from`, `datetime_to`)
 )
-ENGINE = 'InnoDB'
+ENGINE = 'MyISAM'
 COLLATE 'utf8_general_ci'";
 
 $qry[] = "CREATE TABLE `organisations` (
