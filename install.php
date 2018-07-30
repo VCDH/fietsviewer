@@ -447,6 +447,33 @@ PRIMARY KEY (`id`, `datetime_from`, `datetime_to`)
 ENGINE = 'MyISAM'
 COLLATE 'utf8_general_ci'";
 
+$qry[] = "CREATE TABLE `mst_rln` (
+`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+`location_id` VARCHAR(64) NOT NULL,
+`address` TINYTEXT NULL,
+`lat` FLOAT(16,13) SIGNED NOT NULL,
+`lon` FLOAT(16,13) SIGNED NOT NULL,
+`heading` INT(3) UNSIGNED NOT NULL,
+`method` VARCHAR(32) NOT NULL,
+`quality` INT(3) NOT NULL DEFAULT 50,
+PRIMARY KEY (`location_id`),
+UNIQUE KEY (`id`),
+FOREIGN KEY (`method`) REFERENCES `method_flow` (`name`)
+)
+ENGINE = 'InnoDB'
+COLLATE 'utf8_general_ci'";
+
+$qry[] = "CREATE TABLE `data_rln` (
+`id` INT UNSIGNED NOT NULL,
+`datetime_from` DATETIME NOT NULL,
+`datetime_to` DATETIME NOT NULL,
+`red_light_negation` FLOAT UNSIGNED NOT NULL,
+`quality` INT(3) NULL,
+PRIMARY KEY (`id`, `datetime_from`, `datetime_to`)
+)
+ENGINE = 'MyISAM'
+COLLATE 'utf8_general_ci'";
+
 $qry[] = "CREATE TABLE `organisations` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 `name` TEXT NOT NULL,

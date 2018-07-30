@@ -94,13 +94,18 @@ function check_data_format($file) {
     }
     //get column names
     $colnames = str_getcsv($line, $delimiter);
-    //check dpf format
+    //check data format
+    $format = NULL;
     $format_check = check_format_dpf_flow($colnames);
-    if ($format_check == FALSE) {
-        return FALSE;
-    }
-    else {
+    if ($format_check === TRUE) {
         $format = 'dpf-flow';
+    }
+    $format_check = check_format_dpf_rln($colnames);
+    if ($format_check === TRUE) {
+        $format = 'dpf-rln';
+    }
+    if ($format === NULL) {
+        return FALSE;
     }
     //check if there is a data row
     $row1 = fgetcsv($handle, null, $delimiter);
@@ -126,6 +131,41 @@ function check_format_dpf_flow($arr_colnames) {
         array('tijd-van', 'time-from'),
         array('tijd-tot', 'time-to'),
         array('fiets', 'bicycle')
+    );
+    //set $arr_colnames to lowercase
+    $arr_colnames = array_map('strtolower', $arr_colnames);
+    //check for each mandatory col
+    foreach ($mandatory_cols as $cols) {
+        //assume false
+        $assume = FALSE;
+        //check for presence of field
+        foreach ($cols as $col) {
+            $key = array_search($col, $arr_colnames);
+            if ($key !== FALSE) {
+                $assume = TRUE;
+                break;
+            }
+        }
+        //if not present, break and return FALSE
+        if ($assume == FALSE) {
+            return FALSE;
+        }
+    }
+    //all mandatory columns present
+    return TRUE;
+}
+function check_format_dpf_rln($arr_colnames) {
+    $mandatory_cols = array(
+        array('locatie-id', 'location-id', 'id', 'nr'),
+        array('lat'),
+        array('lon'),
+        array('richting', 'heading', 'direction'),
+        array('methode', 'method'),
+        array('periode-van', 'period-from'),
+        array('periode-tot', 'period-to'),
+        array('tijd-van', 'time-from'),
+        array('tijd-tot', 'time-to'),
+        array('rood-licht-negatie', 'red-light-negation')
     );
     //set $arr_colnames to lowercase
     $arr_colnames = array_map('strtolower', $arr_colnames);
@@ -294,7 +334,7 @@ if (!empty($_FILES)) {
 
     <h2>verwerkt</h2>
     <?php
-    $qry = "SELECT `date_lastchange`, `filename`, `process_error`, `process_time`, `date_create` 
+    $qry = "SELECT `date_lastchange`, `filename`, `process_error`, `process_time`, `date_create`, `datatype` 
     FROM `upload_queue`
     WHERE 
     `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
@@ -308,7 +348,7 @@ if (!empty($_FILES)) {
     if (mysqli_num_rows($res)) {
         echo '<p>Onderstaande gegevenssets zijn recent verwerkt. Alleen de 16 meest recente toevoegingen worden weergegeven.</p>';
         echo '<table><thead>';
-        echo '<tr><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
+        echo '<tr><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Type</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
@@ -317,6 +357,8 @@ if (!empty($_FILES)) {
             echo $row[0];
             echo '</td><td>';
             echo htmlspecialchars($row[1]);
+            echo '</td><td>';
+            echo htmlspecialchars($row[5]);
             echo '</td><td>';
             echo (($row[2] == 1) ? 'Nee' : 'Ja');
             echo '</td><td>';
