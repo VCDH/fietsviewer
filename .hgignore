@@ -1,4 +1,6 @@
 dbconfig.inc.php$
 .csv$
+.xlsx$
+.xls$
 .pdf$
 phpinfo.php$
