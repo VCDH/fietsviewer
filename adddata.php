@@ -104,6 +104,10 @@ function check_data_format($file) {
     if ($format_check === TRUE) {
         $format = 'dpf-rln';
     }
+    $format_check = check_format_dpf_waittime($colnames);
+    if ($format_check === TRUE) {
+        $format = 'dpf-waittime';
+    }
     if ($format === NULL) {
         return FALSE;
     }
@@ -166,6 +170,41 @@ function check_format_dpf_rln($arr_colnames) {
         array('tijd-van', 'time-from'),
         array('tijd-tot', 'time-to'),
         array('rood-licht-negatie', 'red-light-negation')
+    );
+    //set $arr_colnames to lowercase
+    $arr_colnames = array_map('strtolower', $arr_colnames);
+    //check for each mandatory col
+    foreach ($mandatory_cols as $cols) {
+        //assume false
+        $assume = FALSE;
+        //check for presence of field
+        foreach ($cols as $col) {
+            $key = array_search($col, $arr_colnames);
+            if ($key !== FALSE) {
+                $assume = TRUE;
+                break;
+            }
+        }
+        //if not present, break and return FALSE
+        if ($assume == FALSE) {
+            return FALSE;
+        }
+    }
+    //all mandatory columns present
+    return TRUE;
+}
+function check_format_dpf_waittime($arr_colnames) {
+    $mandatory_cols = array(
+        array('locatie-id', 'location-id', 'id', 'nr'),
+        array('lat'),
+        array('lon'),
+        array('richting', 'heading', 'direction'),
+        array('methode', 'method'),
+        array('periode-van', 'period-from'),
+        array('periode-tot', 'period-to'),
+        array('tijd-van', 'time-from'),
+        array('tijd-tot', 'time-to'),
+        array('wachttijd', 'wait-time')
     );
     //set $arr_colnames to lowercase
     $arr_colnames = array_map('strtolower', $arr_colnames);

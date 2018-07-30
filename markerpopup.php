@@ -79,6 +79,33 @@ elseif ($_GET['layer'] == 'rln') {
 		</table>';
 	}
 }
+elseif ($_GET['layer'] == 'waittime') {
+	$qry = "SELECT `mst_waittime`.`id` AS `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `wait-time`, `t1`.`quality` AS `quality` 
+	FROM `mst_waittime`
+	LEFT JOIN `method_flow`
+	ON `mst_waittime`.`method` = `method_flow`.`name`
+	LEFT JOIN 
+	(SELECT * FROM `data_waittime` 
+	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
+	AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`) 
+	AS `t1`
+    ON `mst_waittime`.`id` = `t1`.`id`
+	WHERE `mst_waittime`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
+
+	$res = mysqli_query($db['link'], $qry);
+	$json = array();
+	if ($data = mysqli_fetch_assoc($res)) {
+		$json['popup'] = '<table>
+		<tr><th>ID:</th><th>' . htmlspecialchars($data['location_id']) . '</th></tr>
+		<tr><td>Adres:</td><td>' . htmlspecialchars($data['address']) . '</td></tr>
+		<tr><td>Co&ouml;rdinaten:</td><td>' . $data['lat'] . ',' . $data['lon'] . '</td></tr>
+		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
+		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
+		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>
+		<tr><td>Gemiddelde wachttijd:</td><td>' . (($data['wait-time'] == null) ? 'geen data voor tijdstip' : ($data['red_light_negation']) . ' seconden per uur') . '</td></tr>
+		</table>';
+	}
+}
 
 echo json_encode($json, JSON_FORCE_OBJECT);
 

@@ -81,5 +81,25 @@ while ($date_now < $date_end) {
     $date_now += $minute_step*60;
 }
 
+//wait time
+$file = 'waittime_pseudo.csv';
+
+$handle = fopen($file, 'wb');
+fwrite($handle, 'location-id;lat;lon;heading;method;quality;period-from;period-to;time-from;time-to;per;wait-time' . PHP_EOL);
+
+$date_now = strtotime($date_start);
+//$date_end = strtotime($date_end);
+while ($date_now < $date_end) {
+    $time_end = $date_now + $minute_step*60 - 1;
+    //add entry
+    foreach($mst as $ms) {
+        $val = rand(0, 120);
+        $line = $ms[0] . ';' . $ms[1] . ';' . $ms[2] . ';' . $ms[3] . ';' . $ms[4] . ';' . $ms[5] . ';' . date('Y-m-d', $date_now) . ';' . date('Y-m-d', $time_end) . ';' . date('H:i:s', $date_now) . ';' . date('H:i:s', $time_end) . ';' . 0 . ';' . $val . PHP_EOL;
+        fwrite($handle, $line);
+    }
+    //update time
+    $date_now += $minute_step*60;
+}
+
 fclose($handle);
 ?>

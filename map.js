@@ -36,6 +36,12 @@ var maplayers = {
 		unit: 'u<sup>-1</sup>',
 		unit_full: 'aantal/uur',
 		active: true
+	},
+	waittime: {
+		name: 'Gemiddelde Wachttijd',
+		unit: 'sec/uur',
+		unit_full: 'seconden/uur',
+		active: true
 	}
 };
 var icons = {
@@ -89,6 +95,33 @@ var icons = {
 		}),
 		color4: L.icon({
 			iconUrl: 'img/icon_bars_5.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		})
+	},
+	waittime: {
+		colordefault: L.icon({
+			iconUrl: 'img/icon_wait.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow'
+		}),
+		color1: L.icon({
+			iconUrl: 'img/icon_wait_green.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color2: L.icon({
+			iconUrl: 'img/icon_wait_yellow.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color3: L.icon({
+			iconUrl: 'img/icon_wait_orange.png',
+			iconSize: [16,16],
+			className: 'map-icon-flow',
+		}),
+		color4: L.icon({
+			iconUrl: 'img/icon_wait_red.png',
 			iconSize: [16,16],
 			className: 'map-icon-flow',
 		})

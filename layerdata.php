@@ -81,6 +81,36 @@ elseif ($_GET['layer'] == 'rln') {
 		'color' => $color);
 	}
 }
+elseif ($_GET['layer'] == 'waittime') {
+	$qry = "SELECT `mst_waittime`.`id` AS `id`, `location_id`, `wait-time`, `data_waittime`.`quality` AS `quality` FROM `mst_waittime`
+    LEFT JOIN `data_waittime`
+    ON `mst_waittime`.`id` = `data_waittime`.`id`
+    WHERE " . bounds_to_sql($_GET['bounds']) . "
+    AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`";
+	$res = mysqli_query($db['link'], $qry);
+	$json = array();
+	while ($data = mysqli_fetch_assoc($res)) {
+        //calculate color
+        $color = 0;
+        if (($data['wait-time']) > 0) {
+            $color = 1;
+        }
+        if (($data['wait-time']) > 60) {
+            $color = 2;
+        }
+        if (($data['wait-time']) > 90) {
+            $color = 3;
+        }
+        if (($data['wait-time']) > 120) {
+            $color = 4;
+        }
+        //add to output
+        $json[(int) $data['id']] = array(
+		'val' => $data['waittime'],
+		'quality' => $data['quality'],
+		'color' => $color);
+	}
+}
 
 echo json_encode($json, JSON_FORCE_OBJECT);
 

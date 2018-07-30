@@ -48,7 +48,19 @@ elseif ($_GET['layer'] == 'rln') {
 		'heading' => 0);
 	}
 }
-
+elseif ($_GET['layer'] == 'waittime') {
+	$qry = "SELECT `id`, `location_id`, `lat`, `lon` FROM `mst_waittime`
+	WHERE " . bounds_to_sql($_GET['bounds']);
+	$res = mysqli_query($db['link'], $qry);
+	$json = array();
+	while ($data = mysqli_fetch_assoc($res)) {
+		$json[] = array('id' => (int) $data['id'],
+		'location_id' => $data['location_id'],
+		'lat' => (float) $data['lat'],
+		'lon' => (float) $data['lon'],
+		'heading' => 0);
+	}
+}
 
 
 echo json_encode($json);

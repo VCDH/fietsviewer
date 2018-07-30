@@ -125,6 +125,26 @@ function process_uploaded_file($file, $format, $prefix) {
             'red-light-negation' => array('rood-licht-negatie', 'red-light-negation')
         );
     }
+    elseif ($format == 'dpf-waittime') {
+        $cols['mst'] = array(
+            'location_id' => array('locatie-id', 'location-id', 'id', 'nr'),
+            'address' => array('adres', 'address'),
+            'lat' => array('lat'),
+            'lon' => array('lon'),
+            'heading' => array('richting', 'heading', 'direction'),
+            'method' => array('methode', 'method')
+        );
+        $cols['data'] = array (
+            'quality' => array('kwaliteit', 'quality'),
+            'period_from' => array('periode-van', 'period-from'),
+            'period_to' => array('periode-tot', 'period-to'),
+            'dayofweek' => array('weekdag', 'day-of-week'),
+            'time_from' => array('tijd-van', 'time-from'),
+            'time_to' => array('tijd-tot', 'time-to'),
+            'per' => array('per'),
+            'wait-time' => array('wachttijd', 'wait-time')
+        );
+    }
     if (empty($cols)) {
         return 'unsupported_format';
     }
@@ -160,7 +180,7 @@ function process_uploaded_file($file, $format, $prefix) {
     while ($line = fgetcsv($handle, NULL, $delimiter)) {
         $i++;
         //mst
-        if (($format == 'dpf-flow') || ($format == 'dpf-rln')) {
+        if (($format == 'dpf-flow') || ($format == 'dpf-rln') || ($format == 'dpf-waittime')) {
             //location-id
             if (empty($line[$cols['mst']['location_id']])) {
                 $errors[] = 'Invalid location-id on line ' . $i;
@@ -209,7 +229,7 @@ function process_uploaded_file($file, $format, $prefix) {
             $line[$cols['mst']['method']] = str_replace(array('visueel', 'slang', 'lus', 'vri-lus'), array('visual', 'pressure', 'induction', 'trafficlight-induction'), $line[$cols['mst']['method']]);
         }
         //data
-        if (($format == 'dpf-flow') || ($format == 'dpf-rln')) {
+        if (($format == 'dpf-flow') || ($format == 'dpf-rln') || ($format == 'dpf-waittime')) {
             //quality
             if ((!empty($line[$cols['data']['quality']])) && (!is_numeric($line[$cols['data']['quality']]) || ($line[$cols['data']['quality']] < 0) || ($line[$cols['data']['quality']] > 100))) {
                 $errors[] = 'Invalid quality on line ' . $i . '; must be between 0 and 100 or left blank';
@@ -294,6 +314,17 @@ function process_uploaded_file($file, $format, $prefix) {
                 $line[$cols['data']['red-light-negation']] = $line[$cols['data']['red-light-negation']] * 3600 / $data_period;
             }
         }
+        elseif ($format == 'dpf-waittime') {
+            //red-light-negation
+            if (!is_numeric($line[$cols['data']['wait-time']])) {
+                $errors[] = 'Invalid data value on line ' . $i;
+                continue;
+            }
+            //normalize red-light-negation
+            if (($line[$cols['data']['per']] == 0) || ($line[$cols['data']['per']] == 2)) {
+                $line[$cols['data']['wait-time']] = $line[$cols['data']['wait-time']] * 3600 / $data_period;
+            }
+        }
         
         //overwrite mst details
         if (!empty($line[$cols['mst']['lat']])) {
@@ -312,6 +343,7 @@ function process_uploaded_file($file, $format, $prefix) {
             switch ($format) {
                 case 'dpf-flow': $db_table_mst = 'mst_flow'; break;
                 case 'dpf-rln': $db_table_mst = 'mst_rln'; break;
+                case 'dpf-waittime': $db_table_mst = 'mst_waittime'; break;
                 default: $db_table_mst = '';
             }
             if (array_key_exists($line[$cols['mst']['location_id']], $location_details)) {
@@ -377,6 +409,15 @@ function process_uploaded_file($file, $format, $prefix) {
                     $line[$cols['data']['quality']]
                 );
             }
+            elseif ($format == 'dpf-waittime') {
+                $fields = array (
+                    $insert_id,
+                    '"' . date_format($date_from, 'Y-m-d H:i:s') . '"',
+                    '"' . date_format($date_to, 'Y-m-d H:i:s') . '"',
+                    $line[$cols['data']['wait-time']],
+                    $line[$cols['data']['quality']]
+                );
+            }
             $fields = join(';', $fields) . PHP_EOL;
             fwrite($handle_data, $fields);
         }
@@ -410,6 +451,19 @@ function process_uploaded_file($file, $format, $prefix) {
         LINES
             TERMINATED BY '" . PHP_EOL . "'
         (`id`, `datetime_from`, `datetime_to`, `red_light_negation`, @quality)
+        SET
+        `quality` = NULLIF(@quality, '')";
+    }
+    elseif ($format == 'dpf-waittime') {
+        $qry = "LOAD DATA LOCAL INFILE '" . $tmp_data_file . "'
+        REPLACE
+        INTO TABLE `data_waittime`
+        FIELDS 
+            TERMINATED BY ';'
+            OPTIONALLY ENCLOSED BY '\"'
+        LINES
+            TERMINATED BY '" . PHP_EOL . "'
+        (`id`, `datetime_from`, `datetime_to`, `wait-time`, @quality)
         SET
         `quality` = NULLIF(@quality, '')";
     }
