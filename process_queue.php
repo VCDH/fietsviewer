@@ -39,7 +39,7 @@ $tmp_data_file = 'tmp_data.csv';
 if (is_file($runningfile)) {
     $lastchange = file_get_contents($runningfile);
     if (!is_numeric($lastchange) || ((time() - $lastchange) > $timeout)) {
-        exit;
+        //exit;
     }
 }
 $lastrun = time();
@@ -129,13 +129,14 @@ function process_uploaded_file($file, $format, $prefix) {
     $handle_data = fopen($tmp_data_file, 'wb');
 
     //init
-    $i = 1;
+    $i = 0;
     $errors = array();
     $location_ids = array();
     $location_details = array();
 
     //process each row
     while ($line = fgetcsv($handle, NULL, $delimiter)) {
+        $i++;
         //mst
         //location-id
         if (empty($line[$cols['mst']['location_id']])) {
@@ -328,7 +329,6 @@ function process_uploaded_file($file, $format, $prefix) {
         else {
             $errors[] = 'Invalid location-id on line ' . $i . '; no meta-information provided';
         }
-        $i++;
     }
     //import tmp file to database
     fclose($handle_data);
