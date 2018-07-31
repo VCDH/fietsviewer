@@ -39,7 +39,7 @@ $tmp_data_file = 'tmp_data.csv';
 if (is_file($runningfile)) {
     $lastchange = file_get_contents($runningfile);
     if (!is_numeric($lastchange) || ((time() - $lastchange) > $timeout)) {
-        //exit;
+        exit;
     }
 }
 $lastrun = time();
@@ -269,6 +269,7 @@ function process_uploaded_file($file, $format, $prefix) {
             $data_period = 3600;
             if ($line[$cols['data']['per']] == 0) {
                 $data_period = date_timestamp_get($date_to) - date_timestamp_get($date_from);
+                
             }
             elseif ($line[$cols['data']['per']] == 2) {
                 $data_period = 86400;

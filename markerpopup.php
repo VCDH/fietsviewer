@@ -20,6 +20,11 @@
 
 require('dbconnect.inc.php');
 
+//convert request time to UTC
+$datetime = date_create($_GET['date'] . ' ' . $_GET['time'], timezone_open('Europe/Amsterdam'));
+date_timezone_set($datetime, timezone_open('UTC'));
+$datetime = date_format($datetime, 'Y-m-d H:i:s');
+
 if ($_GET['layer'] == 'flow') {
 	$qry = "SELECT `mst_flow`.`id` AS `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `flow_pos`, `flow_neg`, `t1`.`quality` AS `quality` 
 	FROM `mst_flow`
@@ -28,8 +33,8 @@ if ($_GET['layer'] == 'flow') {
 	LEFT JOIN 
 	(SELECT * FROM `data_flow` 
 	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
-    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
-    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) )
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $datetime) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $datetime) . "' AS DATETIME) )
 	AS `t1`
     ON `mst_flow`.`id` = `t1`.`id`
 	WHERE `mst_flow`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
@@ -61,8 +66,8 @@ elseif ($_GET['layer'] == 'rln') {
 	LEFT JOIN 
 	(SELECT * FROM `data_rln` 
 	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
-    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
-    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) )
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $datetime) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $datetime) . "' AS DATETIME) )
 	AS `t1`
     ON `mst_rln`.`id` = `t1`.`id`
 	WHERE `mst_rln`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
@@ -89,8 +94,8 @@ elseif ($_GET['layer'] == 'waittime') {
 	LEFT JOIN 
 	(SELECT * FROM `data_waittime` 
 	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
-    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
-    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) )
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $datetime) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $datetime) . "' AS DATETIME) )
 	AS `t1`
     ON `mst_waittime`.`id` = `t1`.`id`
 	WHERE `mst_waittime`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
