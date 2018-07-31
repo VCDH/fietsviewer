@@ -268,7 +268,7 @@ function process_uploaded_file($file, $format, $prefix) {
             //calculate data period for data value normalization
             $data_period = 3600;
             if ($line[$cols['data']['per']] == 0) {
-                $data_period = date_timestamp_get($date_to) - date_timestamp_get($date_from) + 1;
+                $data_period = date_timestamp_get($date_to) - date_timestamp_get($date_from);
             }
             elseif ($line[$cols['data']['per']] == 2) {
                 $data_period = 86400;

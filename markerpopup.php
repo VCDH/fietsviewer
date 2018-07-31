@@ -28,7 +28,8 @@ if ($_GET['layer'] == 'flow') {
 	LEFT JOIN 
 	(SELECT * FROM `data_flow` 
 	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
-	AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`) 
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) )
 	AS `t1`
     ON `mst_flow`.`id` = `t1`.`id`
 	WHERE `mst_flow`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
@@ -60,7 +61,8 @@ elseif ($_GET['layer'] == 'rln') {
 	LEFT JOIN 
 	(SELECT * FROM `data_rln` 
 	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
-	AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`) 
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) )
 	AS `t1`
     ON `mst_rln`.`id` = `t1`.`id`
 	WHERE `mst_rln`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
@@ -87,7 +89,8 @@ elseif ($_GET['layer'] == 'waittime') {
 	LEFT JOIN 
 	(SELECT * FROM `data_waittime` 
 	WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
-	AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`) 
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) )
 	AS `t1`
     ON `mst_waittime`.`id` = `t1`.`id`
 	WHERE `mst_waittime`.`id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";

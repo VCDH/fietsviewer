@@ -26,7 +26,8 @@ if ($_GET['layer'] == 'flow') {
     LEFT JOIN `data_flow`
     ON `mst_flow`.`id` = `data_flow`.`id`
     WHERE " . bounds_to_sql($_GET['bounds']) . "
-    AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`";
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME)";
 	$res = mysqli_query($db['link'], $qry);
 	$json = array();
 	while ($data = mysqli_fetch_assoc($res)) {
@@ -56,7 +57,8 @@ elseif ($_GET['layer'] == 'rln') {
     LEFT JOIN `data_rln`
     ON `mst_rln`.`id` = `data_rln`.`id`
     WHERE " . bounds_to_sql($_GET['bounds']) . "
-    AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`";
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME)";
 	$res = mysqli_query($db['link'], $qry);
 	$json = array();
 	while ($data = mysqli_fetch_assoc($res)) {
@@ -86,7 +88,8 @@ elseif ($_GET['layer'] == 'waittime') {
     LEFT JOIN `data_waittime`
     ON `mst_waittime`.`id` = `data_waittime`.`id`
     WHERE " . bounds_to_sql($_GET['bounds']) . "
-    AND CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) BETWEEN `datetime_from` AND `datetime_to`";
+    AND `datetime_from` < CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME) 
+    AND `datetime_to` >= CAST('" . mysqli_real_escape_string($db['link'], $_GET['date'] . ' ' . $_GET['time']) . "' AS DATETIME)";
 	$res = mysqli_query($db['link'], $qry);
 	$json = array();
 	while ($data = mysqli_fetch_assoc($res)) {
