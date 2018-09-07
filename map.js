@@ -347,7 +347,7 @@ function setMapCookie() {
 			activeMapLayers.push(layer);
 		}
 	});
-	Cookies.set('fietsviewer_map', [map.getCenter(), map.getZoom(), mapStyle, activeMapLayers], {expires: 1000});
+	Cookies.set('fietsviewer_map', [map.getCenter(), map.getZoom(), mapStyle, activeMapLayers, $('#map-date').val(), $('#map-time').val()], {expires: 1000});
 }
 
 /*
@@ -417,6 +417,7 @@ function dateControlUI(action) {
 	$('#map-time').val(datetime.getHours().toString().padStart(2, '0') + ':' + datetime.getMinutes().toString().padStart(2, '0'));	
 
 	updateLayerData();
+	setMapCookie();
 }
 
 /*
@@ -457,6 +458,12 @@ function openDataRequestPage() {
 */
 $(function() {
 	onloadCookie = Cookies.getJSON('fietsviewer_map');
+	//get date from cookie
+	if ((typeof onloadCookie[4] !== 'undefined') && (typeof onloadCookie[5] !== 'undefined')) {
+		$('#map-date').val(onloadCookie[4]);
+		$('#map-time').val(onloadCookie[5]);	
+	}
+	//initialize map
 	initMap();
 	getMapStyle();
 	//handle to change map style
