@@ -377,6 +377,7 @@ function drawLayerGUI() {
 		setMapCookie();
 	});
 	updateMapLayers();
+	setMapCookie();
 }
 
 /*
