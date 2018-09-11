@@ -135,6 +135,14 @@ td:nth-child(1) {
 	font-weight: bold;
 	white-space: nowrap;
 }
+
+table.invisible th, table.invisible tr, table.invisible td {
+	border: none;
+	background-color: transparent;
+	color: #000;
+	vertical-align: middle;
+}
+
 fieldset th, fieldset td, fieldset tr:nth-child(even), fieldset tr:nth-child(odd), fieldset tr:nth-child(even) td, fieldset tr:nth-child(odd) td {
 	border: none;
 	background: none;
