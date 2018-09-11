@@ -22,7 +22,7 @@ require_once('getuserdata.fct.php');
 
 $menu = array (
     array('href' => 'index.php', 'title' => 'kaart weergeven', 'access' => 0, 'block' => 1),
-    array('href' => 'request.php', 'title' => 'analyse maken', 'access' => 1, 'block' => 1, 'maponly' => FALSE),
+    array('href' => 'request.php', 'title' => 'analyse maken', 'access' => 1, 'block' => 1, 'maponly' => TRUE),
     array('href' => 'results.php', 'title' => 'mijn analyses', 'access' => 1, 'block' => 1),
     array('href' => 'about.php', 'title' => 'over fietsv&#7433;ewer', 'access' => 0, 'block' => 2),
     array('href' => 'help.php', 'title' => 'help', 'access' => 0, 'block' => 2),
