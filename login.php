@@ -1,7 +1,10 @@
 <?php
+
+use PHPMailer\PHPMailer\PHPMailer;
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,6 +21,7 @@
 */
 
 require_once('getuserdata.fct.php');
+require_once('functions/get_token.php');
 
 /*
 * process logout
@@ -43,7 +47,7 @@ function user_login($username, $password) {
 	require('dbconnect.inc.php');
 	require('config.inc.php');
 	//hash password
-	include('password_compat/lib/password.php');
+	include_once('password_compat/lib/password.php');
 	//get password by username
 	$qry = "SELECT `id`, `password` FROM `users` WHERE
 	`username` = '" . mysqli_real_escape_string($db['link'], $username) . "'";
@@ -54,13 +58,7 @@ function user_login($username, $password) {
 		//check password
 		if (password_verify($_POST['password'], $data['password'])) {
 			//generate token
-			$token_length = 32;
-			$token_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-			$token = '';
-			for ($i = 0; $i < $token_length; $i++) {
-				$token .= substr($token_chars, mt_rand(0, strlen($token_chars) - 1), 1);
-			}
-
+			$token = get_token(32);
 			//add token to db
 			$qry = "INSERT INTO `user_login_tokens` SET 
 			`user_id` = '" . mysqli_real_escape_string($db['link'], $data['id']) . "',
@@ -82,17 +80,70 @@ function user_login($username, $password) {
 }
 
 /*
-process login request
+* send new password
+* should always return TRUE
 */
-$errors = array();
+function reset_password($username) {
+	require('dbconnect.inc.php');
+	require('config.inc.php');
+	if (file_exists('mailconfig.inc.php')) {
+        require_once 'mailconfig.inc.php';
+        require_once 'functions/send_mail.php';
+    }
+    else {
+        return FALSE;
+    }
+	//hash password
+	include_once('password_compat/lib/password.php');
+	//get email with user
+	$qry = "SELECT `email`, `name` FROM `users` WHERE `username` = '" . mysqli_real_escape_string($db['link'], $_POST['username']) . "' LIMIT 1";
+	$res = mysqli_query($db['link'], $qry);
+	if (mysqli_num_rows($res)) {
+		$data = mysqli_fetch_assoc($res);
+		//generate new password
+		$new_password = get_token(10);
+		//set new password
+		$new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+		//query
+		$sql = "UPDATE `".$db['prefix']."users`
+		SET `password` = '" . mysqli_real_escape_string($db['link'], $new_password_hash) . "'
+		WHERE `username` = '" . mysqli_real_escape_string($db['link'], $_POST['username']) . "'
+		LIMIT 1";
+		mysqli_query($db['link'], $sql);
+		//prepare email
+		$to = $data['email'];
+		//TODO
+		$subject = $cfg['mail']['subject']['lostpass'];
+		$message = $cfg['mail']['message']['lostpass'];
+		//$subject = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data[1]), $new_password), $subject);
+		$message = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data['name']), $new_password), $message);
+		//send email
+		send_mail($to, $subject, $message);
+	}
+	return TRUE;
+}
+
+/*
+* process login request
+*/
+$messages = array();
 if (!empty($_POST)) {
-	if (user_login($_POST['username'], $_POST['password']) === TRUE) {
+	if ($_GET['do'] == 'lostpass') {
+		//check if not an empty field
+		if (empty($_POST['username'])) {
+			$messages[] = 'empty';
+			$lostpasssuccess = FALSE;
+		}
+		//send email
+		$lostpasssuccess = reset_password($_POST['username']);
+	}
+	elseif (user_login($_POST['username'], $_POST['password']) === TRUE) {
 		//redirect to index
 		header('Location: index.php');
 	}
 	else {
 		//show error
-		$errors[] = 'login';
+		$messages[] = 'login';
 	}
 }
 
@@ -117,21 +168,55 @@ if ($_GET['a'] == 'logout') {
 </head>
 <body>
 	
-	<?php include('menu.inc.php'); ?>
+	<?php 
+	include('menu.inc.php'); 
 
-	<h1>aanmelden</h1>
+	//lost password page
+	if ($_GET['do'] == 'lostpass') {
+		echo '<h1>wachtwoord vergeten</h1>';
+		
+		if (in_array('empty', $messages)) {
+			echo '<p class="info">Vul een gebruikersnaam in.</p>';
+		}
+		elseif ($lostpasssuccess === FALSE) {
+			echo '<p class="error">Kan wachtwoord niet aanvragen.</p>';
+		}
+		elseif ($lostpasssuccess === TRUE) {
+			echo '<p class="success">Wanneer er een e-mailadres bij de opgegeven gebruikersnaam is geregisteerd, is een nieuw wachtwoord naar dit e-mailadres gezonden. Het kan enkele minuten duren voordat het nieuwe wachtwoord wordt ontvangen. Niets ontvangen? Kijk dan ook even in je spam-map!</p>';
+		}
+		
+		?>
+		<p>Wachtwoord vergeten? Vul hieronder je gebruikersnaam in om een nieuw wachtwoord per e-mail toegestuurd te krijgen. Hiervoor moet natuurlijk wel een e-mailadres in je account geregistreerd zijn. Lukt het niet? Neem dan contact op met een beheerder van fietsv&#7433;ewer binnen jouw organisatie. Deze kan het geregisteerde e-mailadres voor je wijzigen.</p>
+		<form method="POST">
+		<table class="invisible">
+			<tr><td>Gebruikersnaam</td><td><input type="text" name="username"></td></tr>
+			<tr><td></td><td><input type="submit" value="Nieuw wachtwoord aanvragen"> <a href="?">Annuleren</a></td></tr>
+		</table>
+		</form>
+		<?php
+	}
 
-	<?php
-	if (in_array('login', $errors)) {
-		echo '<p>Gebruikersnaam/wachtwoord onjuist</p>';
+	//main login page
+	else {
+		echo '<h1>aanmelden</h1>';
+
+		if (in_array('login', $messages)) {
+			echo '<p class="error">Gebruikersnaam/wachtwoord onjuist</p>';
+		}
+		
+		?>
+		<form method="POST">
+		<table class="invisible">
+			<tr><td>Gebruikersnaam</td><td><input type="text" name="username"></td></tr>
+			<tr><td>Wachtwoord</td><td><input type="password" name="password"></td></tr>
+			<tr><td></td><td><input type="submit" value="Aanmelden"></td></tr>
+		</table>
+		</form>
+		<p><a href="?do=lostpass">Wachtwoord vergeten</a></p>
+
+		<?php
 	}
 	?>
-	<form method="POST">
-		Gebruikersnaam: <input type="text" name="username">
-		<br>
-		Wachtwoord: <input type="password" name="password">
-		<br>
-		<input type="submit" value="Aanmelden">
-	</form>
+	
 </body>
 </html>
