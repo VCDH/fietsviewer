@@ -9,7 +9,7 @@ verkeerskundige grootheden.
 
 fietsviewer is bedacht en ontwikkeld door Gemeente Den Haag, afdeling 
 Bereikbaarheid en Verkeersmanagement en aldaar geprogrammeerd door Jasper Vries.
- De broncode is als open source software beschikbaar gesteld, om het voor alle 
+De broncode is als open source software beschikbaar gesteld, om het voor alle 
 wegbeheerders mogelijk te maken om gebruik te maken van deze ontwikkeling. Het 
 formele auteursrecht berust bij de Gemeente Den Haag.
 
@@ -47,6 +47,7 @@ OpenStreetMap: https://www.openstreetmap.org
 JavaScript Cookie: https://github.com/js-cookie/js-cookie
 PHP: http://php.net
 password_compat: https://github.com/ircmaxell/password_compat
+PHPMailer: https://github.com/PHPMailer/PHPMailer
 MySQL: https://www.mysql.com
 MariaDB: https://mariadb.org
 Mozilla Firefox: https://www.mozilla.org/firefox
@@ -66,6 +67,13 @@ overschreven wanneer het installatieprogramma opnieuw wordt uitgevoerd.
 Overige configuratie staat in config.inc.php. Deze hoeft normaal gesproken niet 
 aangepast te worden en is daardoor geen onderdeel van het installatieprogramma.
 
+Om gebruikers een e-mail met hun wachtwoord te kunnen sturen dient 
+mailconfig.inc.php handmatig aangemaakt te worden. Hiervoor kan 
+mailconfig.example.php als voorbeeld gebruikt worden.
+
+Daarnaast worden een aantal algemene zaken geconfigureerd in config.inc.php. 
+Deze hoeven niet noodzakelijkerwijs aangepast te worden.
+
 
 ================================================================================
 3. Dataformat
@@ -74,8 +82,7 @@ aangepast te worden en is daardoor geen onderdeel van het installatieprogramma.
 Voor import van fietsdata wordt gebruik gemaakt van het format dat is 
 vastgesteld voor het Data Platform Fiets (CROW-Fietsberaad), wat voor het doel 
 van fietsviewer is uitgebreid voor andere grootheden dan intensiteiten. Zie 
-docs/fietsviewer dataformat.pdf of fietsviewer dataformat.docx voor een 
-beschrijving van het dataformat.
+docs/interfacebeschrijving_import.html voor een beschrijving van het dataformat.
 
 
 ================================================================================
@@ -90,8 +97,9 @@ de betreffende submappen.
 Met uitzondering van gebundelde libraries is voor fietsviewer het volgende van 
 toepassing:
 
- 	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Jasper Vries, Gemeente Den Haag
+    fietsviewer - grafische weergave van fietsdata
+    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
