@@ -63,7 +63,7 @@ update_running_file();
 * function to process uploaded CSV file
 * returns an array with detailed status information on completion array( (bool) $success, (int) $num_lines_skipped, (array) $detailed_error_info)
 */
-function process_uploaded_file($file, $format, $prefix) {
+function process_uploaded_file($file, $format, $prefix, $dataset_id) {
     //open file
     $handle = fopen($file, 'rb');
     if ($handle == FALSE) {
@@ -188,7 +188,7 @@ function process_uploaded_file($file, $format, $prefix) {
             }
             //check if prefix is prefixed, otherwise prefix it
             if (substr($line[$cols['mst']['location_id']], 0, strlen($prefix)) != $prefix) {
-                $line[$cols['mst']['location_id']] = $prefix . $line[$cols['mst']['location_id']];
+                $line[$cols['mst']['location_id']] = $prefix . '_' . $line[$cols['mst']['location_id']];
             }
             //address, define empty string if optional field is not provided
             if ($cols['mst']['address'] != -1) {
@@ -349,8 +349,9 @@ function process_uploaded_file($file, $format, $prefix) {
             }
             if (array_key_exists($line[$cols['mst']['location_id']], $location_details)) {
                 $qry = "INSERT INTO `" . $db_table_mst . "` 
-                (`location_id`, `address`, `lat`, `lon`, `heading`, `method`) 
+                (`dataset_id`, `location_id`, `address`, `lat`, `lon`, `heading`, `method`) 
                 VALUES (
+                '" . mysqli_real_escape_string($db['link'], $dataset_id) . "',
                 '" . mysqli_real_escape_string($db['link'], $line[$cols['mst']['location_id']]) . "',
                 '" . mysqli_real_escape_string($db['link'], $location_details[$line[$cols['mst']['location_id']]]['address']) . "',
                 '" . mysqli_real_escape_string($db['link'], $location_details[$line[$cols['mst']['location_id']]]['lat']) . "',
@@ -482,10 +483,10 @@ function process_uploaded_file($file, $format, $prefix) {
 */
 
 //retrieve from database
-$qry = "SELECT `upload_queue`.`id`, `upload_queue`.`md5`, `upload_queue`.`datatype`, `organisation_prefixes`.`prefix`
+$qry = "SELECT `upload_queue`.`id`, `upload_queue`.`md5`, `upload_queue`.`datatype`, `datasets`.`prefix`, `datasets`.`id`
 FROM `upload_queue`
-LEFT JOIN `organisation_prefixes`
-ON `upload_queue`.`prefix_id` =  `organisation_prefixes`.`id`
+LEFT JOIN `datasets`
+ON `upload_queue`.`dataset_id` =  `datasets`.`id`
 WHERE
 `upload_queue`.`processed` = 0
 ORDER BY `upload_queue`.`date_create` ASC";
@@ -507,7 +508,7 @@ if (mysqli_num_rows($res)) {
             $file .= '/';
         }
         $file .= $row[1];
-        $output = process_uploaded_file($file, $row[2], $row[3]);
+        $output = process_uploaded_file($file, $row[2], $row[3], $row[4]);
         //update database with result
         If (!empty($output) && is_array($output)) {
             $output = join(PHP_EOL, $output);

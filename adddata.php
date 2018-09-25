@@ -275,7 +275,7 @@ if (!empty($_FILES)) {
                 //add md5 to process queue
                 $qry = "INSERT INTO `upload_queue` SET
                 `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "',
-                `prefix_id` = 1,
+                `dataset_id` = '" . mysqli_real_escape_string($db['link'], $_POST['dataset_id']) . "',
                 `md5` = '" . mysqli_real_escape_string($db['link'], $res) . "',
                 `filename` = '" . mysqli_real_escape_string($db['link'], $_FILES['file']['name']) . "',
                 `datatype` = '" . mysqli_real_escape_string($db['link'], $format) . "',
@@ -310,14 +310,40 @@ if (!empty($_FILES)) {
 	<?php include('menu.inc.php'); ?>
 
     <h1>data aan gegevensset toevoegen</h1>
-    <p>Nieuwe databestanden kunnen handmatig of geautomatiseerd aan een gegevensset in fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren. Data kunnen handmatig worden toegevoegd via onderstaande uploadfunctie.</p>
+    <p>Nieuwe databestanden kunnen handmatig of geautomatiseerd aan een gegevensset in fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren.</p>
 
-    <h2>gegevensset</h2>
-    <p>Selecteer aan welke gegevensset de nieuwe data moet worden toegevoegd. Een gegevensset is een collectie van &eacute;&eacute;n of meerdere datapunten die een bepaalde samenhang hebben (bijvoorbeeld door dezelfde organisatie met eenzelfde techniek ingewonnen).</p>
-
-    <h2>handmatige upload</h2>
-    <p>Selecteer een bestand en klik op Upload. De bestandsindeling moet voldoen aan de specificatie zoals beschreven in de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>. De maximale bestandsgrootte is <?php echo ini_get('post_max_size'); ?>.</p>
+    
     <?php
+    //get available datasets
+    $qry = "SELECT `id`, `name` FROM `datasets`
+    WHERE `organisation_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('organisation_id')) . "'";
+    $res = mysqli_query($db['link'], $qry);
+    if (!mysqli_num_rows($res)) {
+        echo '<h2>gegevensset ontbreekt</h2>';
+        echo '<p>Geen gegevenssets gevonden. Een beheerder moet eerst een of meerdere <a href="admin.php?p=datasets">gegevenssets aanmaken</a>.</p>';
+    }
+    else {
+    ?>
+    
+    <h2>handmatige upload</h2>
+
+    <p>Data kunnen handmatig worden toegevoegd via onderstaande uploadfunctie. Selecteer aan welke gegevensset de nieuwe data moet worden toegevoegd. Een gegevensset is een collectie van &eacute;&eacute;n of meerdere datapunten die een bepaalde samenhang hebben (bijvoorbeeld door dezelfde organisatie met eenzelfde techniek ingewonnen). Selecteer daarna een bestand en klik op Upload. De bestandsindeling moet voldoen aan de specificatie zoals beschreven in de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>. De maximale bestandsgrootte is <?php echo ini_get('post_max_size'); ?>. Sluit de pagina niet voordat de upload voltooid is.</p>
+    
+    <form method="POST" enctype="multipart/form-data">
+    
+    <?php
+        echo '<p><b>Gegevensset</b> <select name="dataset_id">';
+        while ($row = mysqli_fetch_row($res)) {
+            echo '<option value="' . $row[0] . '"';
+            if (($_POST['dataset_id'] == $row[0]) || (empty($_POST) && ($_GET['dataset_id'] == $row[0]))) {
+                echo ' selected';
+            }
+            echo '>';
+            echo htmlspecialchars($row[1]);
+            echo '</option>';
+        }
+        echo '</select></p>';
+
     if (!empty($upload_error)) {
         echo '<p class="error">' . $upload_error . '</p>';
     }
@@ -325,10 +351,8 @@ if (!empty($_FILES)) {
         echo '<p class="success">Bestand is aan de wachtrij toegevoegd. Zodra het databestand verwerkt is, wordt de data in fietsv&#7433;ewer zichtbaar.</p>';
     }
     ?>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <br>
-        <input type="submit" value="Upload">
+        <p><b>Bestand:</b> <input type="file" name="file"></p>
+        <p><input type="submit" value="Upload"></p>
     </form>
 
     <h2>geautomatiseerde upload</h2>
@@ -340,10 +364,16 @@ if (!empty($_FILES)) {
         <tr><th>maximale POST grootte</th><td><?php echo ini_get('post_max_size'); ?></td></tr>
     </table>
 
+    <?php
+    }
+    ?>
+    
     <h2>wachtrij</h2>
     <?php
-    $qry = "SELECT `date_create`, `filename`, `datatype` 
+    $qry = "SELECT `date_create`, `filename`, `datatype`, `datasets`.`name`  
     FROM `upload_queue`
+    LEFT JOIN `datasets`
+    ON `upload_queue`.`dataset_id` = `datasets`.`id`
     WHERE 
     `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
     AND
@@ -353,13 +383,15 @@ if (!empty($_FILES)) {
     if (mysqli_num_rows($res)) {
         echo '<p>Onderstaande databestanden zijn ontvangen maar moeten nog verwerkt worden.</p>';
         echo '<table><thead>';
-        echo '<tr><th>Toegevoegd</th><th>Bestand</th><th>Type</th></tr>';
+        echo '<tr><th>Toegevoegd</th><th>Bestand</th><th>Gegevensset</th><th>Type</th></tr>';
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
             echo $row[0];
             echo '</td><td>';
             echo htmlspecialchars($row[1]);
+            echo '</td><td>';
+            echo htmlspecialchars($row[3]);
             echo '</td><td>';
             echo htmlspecialchars($row[2]);
             echo '</td></tr>';
@@ -373,8 +405,10 @@ if (!empty($_FILES)) {
 
     <h2>verwerkt</h2>
     <?php
-    $qry = "SELECT `date_lastchange`, `filename`, `process_error`, `process_time`, `date_create`, `datatype` 
+    $qry = "SELECT `date_lastchange`, `filename`, `process_error`, `process_time`, `date_create`, `datatype`, `datasets`.`name` 
     FROM `upload_queue`
+    LEFT JOIN `datasets`
+    ON `upload_queue`.`dataset_id` = `datasets`.`id`
     WHERE 
     `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
     AND
@@ -387,7 +421,7 @@ if (!empty($_FILES)) {
     if (mysqli_num_rows($res)) {
         echo '<p>Onderstaande databestanden zijn recent verwerkt. Alleen de 16 meest recente toevoegingen worden weergegeven.</p>';
         echo '<table><thead>';
-        echo '<tr><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Type</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
+        echo '<tr><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Gegevensset</th><th>Type</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
@@ -397,13 +431,21 @@ if (!empty($_FILES)) {
             echo '</td><td>';
             echo htmlspecialchars($row[1]);
             echo '</td><td>';
+            echo htmlspecialchars($row[6]);
+            echo '</td><td>';
             echo htmlspecialchars($row[5]);
             echo '</td><td>';
             echo (($row[2] == 1) ? 'Nee' : 'Ja');
             echo '</td><td>';
             echo htmlspecialchars($row[3]);
             echo '</td><td>';
-            echo htmlspecialchars($row[2]);
+            if (strlen($row[2]) > 100) {
+                echo htmlspecialchars(substr($row[2], 0, 100));
+                echo '... (afgebroken)';
+            }
+            else {
+                echo htmlspecialchars($row[2]);
+            }
             echo '</td></tr>';
         }
         echo '</tbody></table>';

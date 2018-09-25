@@ -514,13 +514,6 @@ $qry[] = "INSERT INTO `organisations`
 VALUES
 (1, 'system', 'SYS')";
 
-$qry[] = "ALTER TABLE `organisations` 
-ADD `abbr` VARCHAR(32) NOT NULL";
-
-$qry[] = "UPDATE `organisations` 
-SET `abbr` = 'SYS'
-WHERE `abbr` IS NULL";
-
 $qry[] = "CREATE TABLE `users` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 `username` VARCHAR(64) NOT NULL,
@@ -567,12 +560,6 @@ $qry[] = "INSERT INTO `organisation_prefixes`
 	VALUES
 	(1, 1, 'SYS01')";
 
-$qry[] = "RENAME TABLE `organisation_prefixes` TO `datasets`";
-
-$qry[] = "ALTER TABLE `datasets` 
-ADD `name` TINYTEXT NULL,
-ADD `description` TINYTEXT NULL";
-
 $qry[] = "CREATE TABLE `upload_queue` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 `user_id` INT UNSIGNED NOT NULL,
@@ -591,6 +578,34 @@ FOREIGN KEY (`prefix_id`) REFERENCES `organisation_prefixes` (`id`)
 )
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
+
+$qry[] = "ALTER TABLE `organisations` 
+ADD `abbr` VARCHAR(32) NOT NULL";
+
+$qry[] = "UPDATE `organisations` 
+SET `abbr` = 'SYS'
+WHERE `abbr` IS NULL";
+
+$qry[] = "RENAME TABLE `organisation_prefixes` TO `datasets`";
+
+$qry[] = "ALTER TABLE `datasets` 
+ADD `name` TINYTEXT NULL,
+ADD `description` TINYTEXT NULL";
+
+$qry[] = "ALTER TABLE `upload_queue` 
+DROP FOREIGN KEY `upload_queue_ibfk_2`, 
+CHANGE `prefix_id` `dataset_id` INT UNSIGNED NOT NULL,
+ADD FOREIGN KEY (`dataset_id`) REFERENCES `datasets` (`id`)";
+
+$qry[] = "ALTER TABLE `mst_flow` 
+ADD `dataset_id` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `id`, 
+ADD FOREIGN KEY ( `dataset_id` ) REFERENCES `datasets` (`id`)";
+$qry[] = "ALTER TABLE `mst_rln` 
+ADD `dataset_id` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `id`, 
+ADD FOREIGN KEY ( `dataset_id` ) REFERENCES `datasets` (`id`)";
+$qry[] = "ALTER TABLE `mst_waittime` 
+ADD `dataset_id` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `id`, 
+ADD FOREIGN KEY ( `dataset_id` ) REFERENCES `datasets` (`id`)";
 
 foreach($qry as $qry_this) {
 	$res = @mysqli_query($db['link'], $qry_this);
