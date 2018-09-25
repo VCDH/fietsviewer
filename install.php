@@ -510,9 +510,16 @@ ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
 $qry[] = "INSERT INTO `organisations`
-(`id`, `name`) 
+(`id`, `name`, `abbr`) 
 VALUES
-(1, 'system')";
+(1, 'system', 'SYS')";
+
+$qry[] = "ALTER TABLE `organisations` 
+ADD `abbr` VARCHAR(32) NOT NULL";
+
+$qry[] = "UPDATE `organisations` 
+SET `abbr` = 'SYS'
+WHERE `abbr` IS NULL";
 
 $qry[] = "CREATE TABLE `users` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -558,7 +565,13 @@ COLLATE 'utf8_general_ci'";
 $qry[] = "INSERT INTO `organisation_prefixes` 
 	(`id`, `organisation_id`, `prefix`)
 	VALUES
-	(1, 1, 'SYS')";
+	(1, 1, 'SYS01')";
+
+$qry[] = "RENAME TABLE `organisation_prefixes` TO `datasets`";
+
+$qry[] = "ALTER TABLE `datasets` 
+ADD `name` TINYTEXT NULL,
+ADD `description` TINYTEXT NULL";
 
 $qry[] = "CREATE TABLE `upload_queue` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

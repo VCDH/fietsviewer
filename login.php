@@ -22,6 +22,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 require_once('getuserdata.fct.php');
 require_once('functions/get_token.php');
+require_once('functions/reset_password.php');
 
 /*
 * process logout
@@ -79,49 +80,6 @@ function user_login($username, $password) {
 	return FALSE;
 }
 
-/*
-* send new password
-* should always return TRUE
-*/
-function reset_password($username) {
-	require('dbconnect.inc.php');
-	require('config.inc.php');
-	if (file_exists('mailconfig.inc.php')) {
-        require_once 'mailconfig.inc.php';
-        require_once 'functions/send_mail.php';
-    }
-    else {
-        return FALSE;
-    }
-	//hash password
-	include_once('password_compat/lib/password.php');
-	//get email with user
-	$qry = "SELECT `email`, `name` FROM `users` WHERE `username` = '" . mysqli_real_escape_string($db['link'], $_POST['username']) . "' LIMIT 1";
-	$res = mysqli_query($db['link'], $qry);
-	if (mysqli_num_rows($res)) {
-		$data = mysqli_fetch_assoc($res);
-		//generate new password
-		$new_password = get_token(10);
-		//set new password
-		$new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-		//query
-		$sql = "UPDATE `".$db['prefix']."users`
-		SET `password` = '" . mysqli_real_escape_string($db['link'], $new_password_hash) . "'
-		WHERE `username` = '" . mysqli_real_escape_string($db['link'], $_POST['username']) . "'
-		LIMIT 1";
-		mysqli_query($db['link'], $sql);
-		//prepare email
-		$to = $data['email'];
-		//TODO
-		$subject = $cfg['mail']['subject']['lostpass'];
-		$message = $cfg['mail']['message']['lostpass'];
-		//$subject = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data[1]), $new_password), $subject);
-		$message = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data['name']), $new_password), $message);
-		//send email
-		send_mail($to, $subject, $message);
-	}
-	return TRUE;
-}
 
 /*
 * process login request

@@ -300,7 +300,7 @@ if (!empty($_FILES)) {
 <!DOCTYPE html>
 <html lang="nl-nl">
 <head>
-	<title>fietsv&#7433;ewer - gegevensset toevoegen</title>
+	<title>fietsv&#7433;ewer - data aan gegevensset toevoegen</title>
 	<meta charset="utf-8">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script src="jquery/jquery-3.3.1.min.js"></script>
@@ -309,11 +309,11 @@ if (!empty($_FILES)) {
 	
 	<?php include('menu.inc.php'); ?>
 
-    <h1>gegevensset toevoegen</h1>
-    <p>Nieuwe gegevenssets kunnen handmatig of geautomatiseerd aan fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren. Gegevenssets kunnen handmatig worden toegevoegd via onderstaande uploadfunctie.</p>
+    <h1>data aan gegevensset toevoegen</h1>
+    <p>Nieuwe databestanden kunnen handmatig of geautomatiseerd aan een gegevensset in fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren. Data kunnen handmatig worden toegevoegd via onderstaande uploadfunctie.</p>
 
-    <h2>prefix</h2>
-    <p></p>
+    <h2>gegevensset</h2>
+    <p>Selecteer aan welke gegevensset de nieuwe data moet worden toegevoegd. Een gegevensset is een collectie van &eacute;&eacute;n of meerdere datapunten die een bepaalde samenhang hebben (bijvoorbeeld door dezelfde organisatie met eenzelfde techniek ingewonnen).</p>
 
     <h2>handmatige upload</h2>
     <p>Selecteer een bestand en klik op Upload. De bestandsindeling moet voldoen aan de specificatie zoals beschreven in de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>. De maximale bestandsgrootte is <?php echo ini_get('post_max_size'); ?>.</p>
@@ -322,7 +322,7 @@ if (!empty($_FILES)) {
         echo '<p class="error">' . $upload_error . '</p>';
     }
     if ($upload_success == TRUE) {
-        echo '<p class="success">Bestand is aan de wachtrij toegevoegd. Zodra de gegevensset verwerkt is, wordt de data in fietsv&#7433;ewer zichtbaar.</p>';
+        echo '<p class="success">Bestand is aan de wachtrij toegevoegd. Zodra het databestand verwerkt is, wordt de data in fietsv&#7433;ewer zichtbaar.</p>';
     }
     ?>
     <form method="POST" enctype="multipart/form-data">
@@ -332,7 +332,7 @@ if (!empty($_FILES)) {
     </form>
 
     <h2>geautomatiseerde upload</h2>
-    <p>Via een API kunnen gegevenssets ook automatisch worden aangeboden. Voor meer informatie zie de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>.</p>
+    <p>Via een API kunnen data ook automatisch worden aangeboden. Voor meer informatie zie de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>.</p>
     <table>
         <tr><th>URL</th><td><?php echo htmlspecialchars(substr($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], '/'))) . '/api/add'; ?></td></tr>
         <tr><th>gebruikersnaam</th><td><?php echo htmlspecialchars(getuserdata('username')); ?></td></tr>
@@ -351,7 +351,7 @@ if (!empty($_FILES)) {
     ORDER BY `date_create` ASC";
     $res = mysqli_query($db['link'], $qry);
     if (mysqli_num_rows($res)) {
-        echo '<p>Onderstaande gegevenssets zijn ontvangen maar moeten nog verwerkt worden.</p>';
+        echo '<p>Onderstaande databestanden zijn ontvangen maar moeten nog verwerkt worden.</p>';
         echo '<table><thead>';
         echo '<tr><th>Toegevoegd</th><th>Bestand</th><th>Type</th></tr>';
         echo '</thead><tbody>';
@@ -367,7 +367,7 @@ if (!empty($_FILES)) {
         echo '</tbody></table>';
     }
     else {
-        echo '<p>Er is geen gegevensset in de wachtrij.</p>';
+        echo '<p>Er is geen databestand in de wachtrij.</p>';
     }
     ?>
 
@@ -385,7 +385,7 @@ if (!empty($_FILES)) {
     LIMIT 16";
     $res = mysqli_query($db['link'], $qry);
     if (mysqli_num_rows($res)) {
-        echo '<p>Onderstaande gegevenssets zijn recent verwerkt. Alleen de 16 meest recente toevoegingen worden weergegeven.</p>';
+        echo '<p>Onderstaande databestanden zijn recent verwerkt. Alleen de 16 meest recente toevoegingen worden weergegeven.</p>';
         echo '<table><thead>';
         echo '<tr><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Type</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
         echo '</thead><tbody>';
@@ -409,7 +409,7 @@ if (!empty($_FILES)) {
         echo '</tbody></table>';
     }
     else {
-        echo '<p>Er zijn nog geen gegevenssets verwerkt.</p>';
+        echo '<p>Er zijn nog geen databestanden verwerkt.</p>';
     }
     ?>
         

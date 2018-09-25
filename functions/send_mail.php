@@ -26,6 +26,7 @@
 function send_mail($to, $subject, $message) {
     require_once 'PHPMailer/src/PHPmailer.php';
 	require_once 'PHPMailer/src/SMTP.php';
+	require_once 'PHPMailer/src/Exception.php';
     $mail = new PHPMailer\PHPMailer\PHPMailer();
     if (file_exists('mailconfig.inc.php')) {
         require_once 'mailconfig.inc.php';
