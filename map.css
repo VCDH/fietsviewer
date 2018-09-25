@@ -40,11 +40,11 @@ html, body {
 	z-index: 1500;
 }
 
-#map-style fieldset, #map-layers fieldset {
+#map-tile fieldset, #map-style fieldset, #map-layers fieldset {
 	background-color: #FFF;
 }
 
-#map-style legend, #map-layers legend {
+#map-tile legend, #map-style legend, #map-layers legend {
 	color: #000;
 	text-shadow:
     -1px -1px 0 #FFF,

@@ -33,14 +33,21 @@
 <body>
 	<div id="map"></div>
 	<div id="map-options-container">
-		<div id="map-style">
+		<div id="map-tile">
 			<fieldset>
 			<legend>Kaartachtergrond</legend>
+				<input type="radio" name="map-tile" id="map-tile-osm"><label for="map-tile-osm">OpenStreetMap</label><br>
+				<input type="radio" name="map-tile" id="map-tile-cycle"><label for="map-tile-cycle">OpenCycleMap</label>
+			</fieldset>
+		</div>
+		<div id="map-style">
+			<fieldset>
+			<legend>Kaartweergave</legend>
 				<input type="radio" name="map-style" id="map-style-default"><label for="map-style-default">Standaard</label><br>
 				<input type="radio" name="map-style" id="map-style-lighter"><label for="map-style-lighter">Lichter</label><br>
 				<input type="radio" name="map-style" id="map-style-grayscale"><label for="map-style-grayscale">Grijswaarden</label><br>
 				<input type="radio" name="map-style" id="map-style-dark"><label for="map-style-dark">Donker</label><br>
-				<input type="radio" name="map-style" id="map-style-oldskool"><label for="map-style-oldskool">Ouderwetsch</label>
+				<input type="radio" name="map-style" id="map-style-oldskool"><label for="map-style-oldskool">Vergeeld</label>
 			</fieldset>
 		</div>
 		<div id="map-layers">

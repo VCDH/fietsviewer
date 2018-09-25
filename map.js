@@ -22,6 +22,9 @@
 */
 var map;
 var mapStyle = 'map-style-default';
+var tileLayer = 'map-tile-osm';
+var tileLayerOsm;
+var tileLayerTf;
 var onloadCookie;
 var markers = {};
 var maplayers = {
@@ -144,10 +147,15 @@ function initMap() {
 		//set initial map view
 		map.setView([52.071,4.239],12);
 	}
-	//add tile layer
-	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	// define map tile layers
+	tileLayerOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
+	tileLayerTf = L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
+		attribution: 'Maps &copy; <a href="http://www.thunderforest.com">Thunderforest</a>, Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+	}).addTo(map);
+	//add tile layer
+	setMapTileLayer(tileLayer);
 	//modify some map controls
 	map.zoomControl.setPosition('bottomright');
 	L.control.scale().addTo(map);
@@ -160,11 +168,45 @@ function initMap() {
 }
 
 /*
+* Get maps tileset on page load
+*/
+function getMapTileLayer() {
+	//get map style
+	if ((typeof onloadCookie !== 'undefined') && (onloadCookie[6] == 'map-tile-cycle')) {
+		tileLayer = onloadCookie[6];
+	}
+	else {
+		tileLayer = 'map-tile-osm';
+	}
+	//set correct radio button
+	$('#' + tileLayer).prop('checked', true);
+	//update map style
+}
+
+/*
+* Set the map tileset
+*/
+function setMapTileLayer(tile_id) {
+	if (tile_id == 'map-tile-cycle') {
+		tileLayer = tile_id;
+		map.removeLayer(tileLayerOsm);
+		map.addLayer(tileLayerTf);
+	}
+	else {
+		tileLayer = 'map-tile-osm';
+		map.removeLayer(tileLayerTf);
+		map.addLayer(tileLayerOsm);
+	}
+	updateMapStyle();
+	setMapCookie();
+}
+
+/*
 * Get maps style on page load
 */
 function getMapStyle() {
 	//get map style
-	if ((typeof onloadCookie !== 'undefined') && ((onloadCookie[2] == 'map-style-grayscale') || (onloadCookie[2] == 'map-style-lighter')  || (onloadCookie[2] == 'map-style-dark') || (onloadCookie[2] == 'map-style-oldskool'))) {
+	if ((typeof onloadCookie !== 'undefined') && ((onloadCookie[2] == 'map-style-grayscale') || (onloadCookie[2] == 'map-style-lighter')  || (onloadCookie[2] == 'map-style-dark') || (onloadCookie[2] == 'map-style-oldskool')) || (onloadCookie[2] == 'map-style-cycle')) {
 		mapStyle = onloadCookie[2];
 	}
 	else {
@@ -180,7 +222,7 @@ function getMapStyle() {
 * Set the map style and store it in the cookie
 */
 function setMapStyle(style_id) {
-	if ((style_id == 'map-style-grayscale') || (style_id == 'map-style-lighter') || (style_id == 'map-style-dark') || (style_id == 'map-style-oldskool')) {
+	if ((style_id == 'map-style-grayscale') || (style_id == 'map-style-lighter') || (style_id == 'map-style-dark') || (style_id == 'map-style-oldskool') || (style_id == 'map-style-cycle')) {
 		mapStyle = style_id;
 	}
 	else {
@@ -197,6 +239,7 @@ function updateMapStyle() {
 	$('img.leaflet-tile').removeClass('map-style-lighter');
 	$('img.leaflet-tile').removeClass('map-style-dark');
 	$('img.leaflet-tile').removeClass('map-style-oldskool');
+	//map recolor
 	if ((mapStyle == 'map-style-grayscale') || (mapStyle == 'map-style-lighter') ||  (mapStyle == 'map-style-dark') || (mapStyle == 'map-style-oldskool')) {
 		$('img.leaflet-tile').addClass(mapStyle);
 	}
@@ -347,7 +390,7 @@ function setMapCookie() {
 			activeMapLayers.push(layer);
 		}
 	});
-	Cookies.set('fietsviewer_map', [map.getCenter(), map.getZoom(), mapStyle, activeMapLayers, $('#map-date').val(), $('#map-time').val()], {expires: 1000});
+	Cookies.set('fietsviewer_map', [map.getCenter(), map.getZoom(), mapStyle, activeMapLayers, $('#map-date').val(), $('#map-time').val(), tileLayer], {expires: 1000});
 }
 
 /*
@@ -465,8 +508,13 @@ $(function() {
 		$('#map-time').val(onloadCookie[5]);	
 	}
 	//initialize map
+	getMapTileLayer();
 	initMap();
 	getMapStyle();
+	//handle to change map tileLayer
+	$('#map-tile input').change( function() {
+		setMapTileLayer(this.id);
+	});
 	//handle to change map style
 	$('#map-style input').change( function() {
 		setMapStyle(this.id);
