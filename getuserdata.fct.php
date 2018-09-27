@@ -68,8 +68,49 @@ function logincheck() {
     if (getuserdata() !== TRUE) {
         header('HTTP/1.0 401 Unauthorized');
         echo '<h1>401 Unauthorized</h1>';
-        echo '<a href="login.php">login</a>';
+        echo '<p><a href="login.php">login</a></p>';
         exit;
     }    
+}
+
+/*
+* function to check if the user has a certain accesslevel
+(bool) accesslevelcheck( (mixed) $req_accesslevel )
+$req_accesslevel can be a named value from $accesslevel or a numeric value between 0 and 255
+Return value:
+TRUE if the user has sufficient accesslevel, FALSE otherwise
+*/
+
+function accesslevelcheck($req_accesslevel) {
+    //get numeric value by named value
+    if (is_string($req_accesslevel)) {
+        require 'accesslevels.inc.php';
+        if (array_key_exists($req_accesslevel, $cfg_accesslevel)) {
+            $req_accesslevel = $cfg_accesslevel[$req_accesslevel];
+        }
+    }
+    if (is_numeric($req_accesslevel) && ($req_accesslevel >= 0) && ($req_accesslevel <= 255) && (getuserdata('accesslevel') >= $req_accesslevel)) {
+        return TRUE;
+    }
+    return FALSE; 
+}
+
+/*
+* function to check if the user has a certain accesslevel
+mixed accesscheck( (str) $req_accesslevel )
+Return value:
+void if the user has sufficient accesslevel, error message otherwise
+*/
+
+function accesscheck($req_accesslevel) {
+    //find if given accesslevelname exists and check accesslevel
+    if (accesslevelcheck($req_accesslevel) === TRUE) {
+        return TRUE;
+    }
+    header('HTTP/1.0 401 Unauthorized');
+    echo '<h1>401 Unauthorized</h1>';
+    echo '<p>Te weinig rechten om deze functie gebruiken. Als je hier bent gekomen door een link aan te klikken, heb je een programmeerfout gevonden!</p>';
+    echo '<p><a href="index.php">beginpagina</a></p>';
+    exit;
 }
 ?>

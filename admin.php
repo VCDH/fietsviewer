@@ -20,14 +20,15 @@
 
 require_once 'getuserdata.fct.php';
 logincheck();
-$accesslevel = getuserdata('userlevel');
+accesscheck('admin');
+$accesslevel = getuserdata('accesslevel');
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 
 //preprocess
 $messages = array();
 //edit existing or store new organisation
-if (($_GET['p'] == 'organisations') && ($_GET['a'] == 'edit')) {
+if (($_GET['p'] == 'organisations') && ($_GET['a'] == 'edit') && accesslevelcheck('organisations')) {
     //check if id exists
     $qry = "SELECT `id`, `name` FROM `organisations` 
     WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
@@ -109,7 +110,7 @@ if (($_GET['p'] == 'organisations') && ($_GET['a'] == 'edit')) {
     }
 }
 //edit existing or store new user
-if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit')) {
+if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit') && accesslevelcheck('users')) {
     //check if id exists
     $qry = "SELECT `id`, `username`, `name`, `email`, `phone`, `organisation_id`, `accesslevel` FROM `users` 
     WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
@@ -117,6 +118,7 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit')) {
     $res = mysqli_query($db['link'], $qry);
     if (mysqli_num_rows($res)) {
         $data = mysqli_fetch_assoc($res);
+        $old_user_access_level = $data['accesslevel'];
     }
     else {
         $data = array();
@@ -152,7 +154,7 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit')) {
             }
         }
         //check accesslevel
-        if (!is_numeric($data['accesslevel']) || ($data['accesslevel'] < 1) || ($data['accesslevel'] > 255)) {
+        if (!is_numeric($data['accesslevel']) || ($data['accesslevel'] < 1) || ($data['accesslevel'] > $accesslevel) || ($accesslevel < $old_user_access_level)) {
             //name is empty
             $store_success = FALSE;
             $messages[] = 'accesslevel';
@@ -204,7 +206,7 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit')) {
     }
 }
 //edit existing or store new dataset
-if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit')) {
+if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('datasets')) {
     //check if id exists
     $qry = "SELECT `id`, `organisation_id`, `prefix`, `name`, `description` FROM `datasets` 
     WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
@@ -421,13 +423,25 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit')) {
         }
         ?>
         </td></tr>
-        <tr><td>Toegangsniveau</td><td><input type="number" name="accesslevel" value="<?php echo htmlspecialchars($data['accesslevel']); ?>" min="1" max="255" step="1" required> (1-255)</td></tr>
+        <tr><td>Toegangsniveau</td><td><input type="number" name="accesslevel" value="<?php echo htmlspecialchars($data['accesslevel']); ?>" min="1" max="<?php echo $accesslevel; ?>" step="1" required> (1-<?php echo $accesslevel; ?>)</td></tr>
         <tr><td>Wachtwoord</td><td><input type="radio" name="password" value="keep" id="password-keep"<?php echo ($data['password'] == 'keep') ? ' checked' : ''; ?>> <label for="password-keep">Huidig wachtwoord behouden</label><br>
         <input type="radio" name="password" value="email" id="password-email"> <label for="password-email"<?php echo ($data['password'] == 'email') ? ' checked' : ''; ?>>Nieuw wachtwoord genereren en sturen per e-mail</label></td></tr>
         <tr><td></td><td><input type="submit" value="Opslaan"> <a href="?p=users">Annuleren</a></td></tr>
         </table>
         </form>
-        <?php     
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <h2>Toegangsniveau</h2>
+        <p>Sorry, je werkt met een applicatie die nog niet af is. Hierdoor is het rechtensysteem nog niet direct gebruiksvriendelijk. Maar er is in ieder geval wel iets om te voorkomen dat je collega's hetzelfde kunnen als jij! Hoe het werkt is dat iedere gebruiker een toegangsniveau heeft. Op basis hiervan mag de gebruiker bepaalde functies wel of juist niet gebruiken. Hoe hoger het toegangsniveau, hoe meer de gebruiker mag. Raadpleeg onderstaande tabel om te zien wat een gebruiker mag als je een bepaald toegangsniveau toekent. Je kunt geen hoger toegangsniveau toekennen aan een gebruiker dan je zelf hebt, daardoor kun je ook geen gebruikers bewerken met een hoger toegangsniveau dan jezelf, ook als je wel het recht hebt om gebruikers te bewerken. Let op dat wanneer je je eigen toegangsniveau verlaagt, je dit nooit meer zelf kunt ophogen.</p>
+        <?php
+        require_once 'accesslevels.inc.php';
+        asort($cfg_accesslevel);
+        echo '<table>';
+        echo '<tr><th>Functionaliteit</th><th>Minimaal vereist toegangsniveau</th></tr>';
+        foreach ($cfg_accesslevel as $name => $lvl) {
+            echo '<tr><td>' . $cfg_accessdescription[$name] . '</td><td>' . $lvl . '</td></tr>';
+        }
+        echo '</table>';
     }
     
     //users menu
@@ -459,9 +473,13 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit')) {
                 echo '</td><td>';
                 echo htmlspecialchars($row[4]);
                 echo '</td><td>';
-                echo '<a href="?p=users&amp;a=edit&amp;id=' . $row[0] . '">Bewerken</a>';
+                if ($accesslevel >= $row[4]) {
+                    echo '<a href="?p=users&amp;a=edit&amp;id=' . $row[0] . '">Bewerken</a>';
+                }
                 echo '</td><td>';
+                //if ($accesslevel >= $row[4]) {
                 //TODO echo '<a href="?p=users&amp;a=delete&amp;id=' . $row[0] . '">Verwijderen</a>';
+                //}
                 echo '</td></tr>';
             }
             echo '</table>';
@@ -538,13 +556,18 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit')) {
     }
     //main admin menu
     else {
-        ?>
-        <h1>admin</h1>
-        <ul>
-            <li><a href="?p=organisations">Organisaties beheren</a></li>
-            <li><a href="?p=users">Gebruikers beheren</a></li>
-            <li><a href="?p=datasets">Gegevenssets beheren</a></li>
-        <?php
+        echo '<h1>admin</h1>';
+        echo '<ul>';
+        if (accesslevelcheck('organisations')) {
+            echo '<li><a href="?p=organisations">Organisaties beheren</a></li>';
+        }
+        if (accesslevelcheck('users')) {
+            echo '<li><a href="?p=users">Gebruikers beheren</a></li>';
+        }
+        if (accesslevelcheck('datasets')) {
+            echo '<li><a href="?p=datasets">Gegevenssets beheren</a></li>';
+        }
+        echo '</ul>';
     }
     ?>
     
