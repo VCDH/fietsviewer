@@ -19,7 +19,6 @@
 */
 
 require_once 'getuserdata.fct.php';
-logincheck();
 accesscheck('admin');
 $accesslevel = getuserdata('accesslevel');
 require 'dbconnect.inc.php';

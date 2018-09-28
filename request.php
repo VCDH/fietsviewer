@@ -19,7 +19,7 @@
 */
 
 require_once 'getuserdata.fct.php';
-logincheck();
+accesscheck('request');
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 
