@@ -314,7 +314,7 @@ if (!empty($_FILES)) {
 	<?php include('menu.inc.php'); ?>
 
     <h1>data aan gegevensset toevoegen</h1>
-    <p>Nieuwe databestanden kunnen handmatig of geautomatiseerd aan een gegevensset in fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren.</p>
+    <!--<p>Nieuwe databestanden kunnen handmatig of geautomatiseerd aan een gegevensset in fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren.</p>-->
 
     
     <?php
@@ -358,7 +358,7 @@ if (!empty($_FILES)) {
         <p><b>Bestand:</b> <input type="file" name="file"></p>
         <p><input type="submit" value="Upload"></p>
     </form>
-
+    <!--
     <h2>geautomatiseerde upload</h2>
     <p>Via een API kunnen data ook automatisch worden aangeboden. Voor meer informatie zie de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>.</p>
     <table>
@@ -367,7 +367,7 @@ if (!empty($_FILES)) {
         <tr><th>wachtwoord</th><td>(bekend bij gebruiker)</td></tr>
         <tr><th>maximale POST grootte</th><td><?php echo ini_get('post_max_size'); ?></td></tr>
     </table>
-
+    -->
     <?php
     }
     ?>
