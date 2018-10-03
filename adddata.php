@@ -284,6 +284,10 @@ if (!empty($_FILES)) {
                 `date_lastchange` = NOW()";
                 if (mysqli_query($db['link'], $qry)) {
                     $upload_success = TRUE;
+                    //request hypervisor
+                    if ($cfg['hypervisor']['user_activated'] == TRUE) {
+                        include_once 'hypervisor.php';
+                    }
                 }
                 else {
                     $upload_error = 'database';

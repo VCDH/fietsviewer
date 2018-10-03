@@ -308,6 +308,11 @@ $requestcompleted = validRequestCompleted();
 if ($requestcompleted === TRUE) {
     $requestcompleted = addRequestToQueue();
     if ($requestcompleted === TRUE) {
+        //request hypervisor
+        if ($cfg['hypervisor']['user_activated'] == TRUE) {
+            include_once 'hypervisor.php';
+        }
+        //redirect to result page
         header('Location: results.php');
     }
     else {
