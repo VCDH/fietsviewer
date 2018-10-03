@@ -23,13 +23,42 @@ accesscheck('request');
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 
+
+/*
+* some config
+*/
+$daysofweek = array (
+    2 => 'ma',
+    3 => 'di',
+    4 => 'wo',
+    5 => 'do',
+    6 => 'vr',
+    7 => 'za',
+    1 => 'zo'
+);
+$aggregateoptions = array (
+    'h14' => 'Kwartier',
+    'h12' => 'Halfuur',
+    'h' => 'Uur',
+    'd' => 'Dag',
+    'w' => 'Week',
+    'm' => 'Maand',
+    'q' => 'Kwartaal',
+    'y' => 'Jaar'
+);
+$priorityoptions = array (
+    3 => 'Laag',
+    2 => 'Normaal',
+    1 => 'Hoog'
+);
+
 /*
 * check if any markers are selected and if they exist
 * returns FALSE if there are no markers or an array with the details of the markers otherwise
 */
-function checkSelectedMarkers() {
+function checkSelectedMarkers($json_markers) {
     require 'dbconnect.inc.php';
-    $requestedMarkers = json_decode($_POST['markers'], TRUE);
+    $requestedMarkers = json_decode($json_markers, TRUE);
     if ($requestedMarkers === NULL) {
         return FALSE;
     }
@@ -63,6 +92,8 @@ function checkSelectedMarkers() {
 * returns an array on failure or TRUE on success
 */
 function validRequestCompleted() {
+    global $aggregateoptions;
+    global $priorityoptions;
     $errors = array();
     //skip further processing if form is opened from map to make sure form is initially shown without errors
     if ($_POST['from'] != 'form') {
@@ -74,6 +105,7 @@ function validRequestCompleted() {
         $errors[] = 'markers';
     }
     //check analysis type
+    $type = NULL;
     $valid_types = array ('flow' => array ('diff', 'trend'));
     $available_types = array_intersect_key($valid_types, $requestedMarkers);
     if (empty($available_types)) {
@@ -85,37 +117,203 @@ function validRequestCompleted() {
             break;
         }
     }
+    //check type
     if (empty($type)) {
         $errors[] = 'type';
     }
-    //TODO check date fields
-
-    //TODO check aggregation period
-
-    //TODO check data availability
-
-    //
-
+    //check name field
+    if (empty($_POST['name'])) {
+        $errors[] = 'name';
+    }
+    //check date fields
+    $n = 1;
+    if ($type == 'diff') {
+        $n = 2;
+    }
+    for ($i = 1; $i <= $n; $i++) {
+        //check if date fields are a date
+        if (strtotime($_POST['date-start' . $i]) === FALSE) {
+            $errors[] = 'date-start' . $i;
+        }
+        if (strtotime($_POST['date-end' . $i]) === FALSE) {
+            $errors[] = 'date-end' . $i;
+        }
+        if ((strtotime($_POST['date-start' . $i]) - strtotime($_POST['date-end' . $i])) > 0) {
+            $errors[] = 'date-end-before-start' . $i;
+        }
+        if (strtotime($_POST['time-start' . $i]) === FALSE) {
+            $errors[] = 'time-start' . $i;
+        }
+        if (strtotime($_POST['time-end' . $i]) === FALSE) {
+            $errors[] = 'time-end' . $i;
+        }
+        if (is_array($_POST['daysofweek' . $i])) {
+            foreach ($_POST['daysofweek' . $i] as $val) {
+                if (!is_numeric($val) || ($val < 1) || ($val > 7)) {
+                    $errors[] = 'daysofweek' . $i;
+                    break;
+                }
+            }
+        }
+        else {
+            $errors[] = 'daysofweek' . $i;
+        }
+    }
+    //check aggregation period
+    if (!array_key_exists($_POST['aggregate'], $aggregateoptions)) {
+        $errors[] = 'aggregate';
+    }
+    //check data availability
+    if (!is_numeric($_POST['availability']) || ($_POST['availability'] < 0) || ($_POST['availability'] > 100)) {
+        $errors[] = 'availability';
+    }
+    //check priority
+    if (!array_key_exists($_POST['priority'], $priorityoptions)) {
+        $errors[] = 'priority';
+    }
+    //check email
+    if (!in_array($_POST['email'], array('true', 'false'))) {
+        $errors[] = 'email';
+    }
     //return value
     if (!empty($errors)) {
         return $errors;
     }
     else {
-        //add to request queue
-        $qry = "";
-        $res = mysqli_query($db['link'], $qry);
-        if ($res == TRUE) {
-            return TRUE;
-        }
-        else {
-            $errors[] = 'mysql';
-        }
+        return TRUE;
     }
     //return errors
     return $errors;
 }
 
+/*
+* add the request to the queue
+* returns FALSE on failure or TRUE on success
+*/
+function addRequestToQueue() {
+    //prepare request details
+    $req_details = array();
+    $req_details['markers'] = $_POST['markers'];
+    $req_details['aggregate'] = $_POST['aggregate'];
+    $req_details['availability'] = $_POST['availability'];
+    $req_details['period'] = array();
+    for ($i = 1; $i <= 2; $i++) {
+        $req_details['period'][$i] = array();
+        $req_details['period'][$i]['date-start'] = $_POST['date-start' . $i];
+        $req_details['period'][$i]['date-end'] = $_POST['date-end' . $i];
+        $req_details['period'][$i]['time-start'] = $_POST['time-start' . $i];
+        $req_details['period'][$i]['time-end'] = $_POST['time-end' . $i];
+        $req_details['period'][$i]['daysofweek'] = $_POST['daysofweek' . $i];
+    }
+    $req_details = json_encode($req_details);
 
+    //add to database
+    require 'dbconnect.inc.php';
+    $qry = "INSERT INTO `request_queue` SET
+    `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "',
+    `name` = '" . mysqli_real_escape_string($db['link'], $_POST['name']) . "',
+    `worker` = '" . mysqli_real_escape_string($db['link'], $_POST['type']) . "',
+    `request_details` = '" . mysqli_real_escape_string($db['link'], $req_details) . "',
+    `priority` = '" . mysqli_real_escape_string($db['link'], $_POST['priority']) . "',
+    `send_email` = '" . mysqli_real_escape_string($db['link'], (($_POST['email'] == 'true') ? '1' : '0')) . "',
+    `processed` = 0,
+    `date_create` = NOW(),
+    `date_lastchange` = NOW()";
+    return mysqli_query($db['link'], $qry);
+}
+
+/*
+* prepares an array with form field data, from either submit or page requests
+*/
+function getValuesForForm() {
+    //default values
+    $data = array();
+    $data['name'] = '';
+    $data['markers'] = '';
+    $data['selectedmarkers'] = array();
+    $data['type'] = '';
+    for ($i = 1; $i <= 2; $i++) {
+        $data['period'][$i]['date-start'] = date('Y-m-d', time() - 24*60*60);
+        $data['period'][$i]['date-end'] = date('Y-m-d', time() - 24*60*60);
+        $data['period'][$i]['time-start'] = '06:00';
+        $data['period'][$i]['time-end'] = '22:00';
+        $data['period'][$i]['daysofweek'] = array();
+    }
+    $data['aggregate'] = 'd';
+    $data['availability'] = 0;
+    $data['priority'] = 2;
+    $data['email'] = 'true';
+    //form is submitted, so we should get the post data
+    if ($_POST['from'] == 'form') {
+        $data['name'] = htmlspecialchars($_POST['name']);
+        $data['type'] = htmlspecialchars($_POST['type']);
+        $data['markers'] = $_POST['markers'];
+        //TODO $data['selectedmarkers'] = array();
+        for ($i = 1; $i <= 2; $i++) {
+            $data['period'][$i]['date-start'] = htmlspecialchars($_POST['date-start' . $i]);
+            $data['period'][$i]['date-end'] = htmlspecialchars($_POST['date-end' . $i]);
+            $data['period'][$i]['time-start'] = htmlspecialchars($_POST['time-start' . $i]);
+            $data['period'][$i]['time-end'] = htmlspecialchars($_POST['time-end' . $i]);
+            $data['period'][$i]['daysofweek'] = array();
+            if (is_array($_POST['daysofweek' . $i])) {
+                foreach ($_POST['daysofweek' . $i] as $val) {
+                    if (is_numeric($val) && ($val >= 1) && ($val <= 7)) {
+                        $data['period'][$i]['daysofweek'][] = $val;
+                    }
+                }
+            }
+        }
+        $data['aggregate'] = $_POST['aggregate'];
+        $data['availability'] = htmlspecialchars($_POST['availability']);
+        $data['priority'] = htmlspecialchars($_POST['priority']);
+        $data['email'] = htmlspecialchars($_POST['email']);
+    }
+    //request to reuse previous request
+    elseif (is_numeric($_GET['id'])) {
+        //select from db
+        require 'dbconnect.inc.php';
+        $qry = "SELECT `name`, `worker`, `request_details`, `priority`, `send_email` FROM `request_queue` WHERE
+        `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
+        AND `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
+        LIMIT 1";
+        $res = mysqli_query($db['link'], $qry);
+        if (mysqli_num_rows($res)) {
+            $assoc = mysqli_fetch_assoc($res);
+            $data = json_decode($assoc['request_details'], TRUE);
+            if (!is_array($data)) {
+                $data = array();
+            }
+            for ($i = 1; $i <= 2; $i++) {
+                if (!is_array($data['period'][$i]['daysofweek'])) {
+                    $data['period'][$i]['daysofweek'] = array();
+                }
+            }
+            $data['type'] = $assoc['worker'];
+            $data['priority'] = $assoc['priority'];
+            $data['email'] = ($assoc['send_email'] == 1) ? 'true' : 'false';
+            $data['name'] = htmlspecialchars($assoc['name'] . ' - kopie');
+        }
+    }
+    //request from map view
+    else {
+        $data['markers'] = $_POST['markers'];
+    }
+    return $data;
+}
+
+//process requests
+$value = getValuesForForm();
+$selectedmarkers = checkSelectedMarkers($value['markers']);
+$requestcompleted = validRequestCompleted();
+if ($requestcompleted === TRUE) {
+    $requestcompleted = addRequestToQueue();
+    if ($requestcompleted === TRUE) {
+        header('Location: results.php');
+    }
+    else {
+        $errors[] = 'mysql';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -131,13 +329,10 @@ function validRequestCompleted() {
 	
     <?php include('menu.inc.php'); ?>
     
-    
     <h1>analyse maken</h1>
     
     <?php
     //no valid markers
-    $selectedmarkers = checkSelectedMarkers();
-    $requestcompleted = validRequestCompleted();
     if (!$selectedmarkers) {
         ?>
         <p class="error">Geen meetlocaties geselecteerd.</p>
@@ -155,13 +350,17 @@ function validRequestCompleted() {
     //request setup page
     else {
         ?>
-
+        <?php 
+        if (in_array('mysql', $requestcompleted)) {
+            echo '<p class="error">Kan aanvraag niet opslaan. Probeer het later nogmaals of meld het probleem als het zich blijft voordoen.</p>';
+        }
+        elseif (is_array($requestcompleted) && !empty($requestcompleted)) {
+            echo '<p class="info">Kan aanvraag niet indienen. E&eacute;n of meerdere velden zijn niet correct ingevuld.</p>';
+        }
+        ?>
         <form method="POST">
         <input type="hidden" name="from" value="form">
         <p>Via deze pagina kunnen analyses gemaakt worden op de data in fietsv&#7433;ewer. Aangevraagde analyses worden toegevoegd aan een wachtrij en kunnen zodra ze klaar zijn geraadpleegd worden via de pagina <a href="results.php">mijn analyses</a>. Via <a href="results.php">mijn analyses</a> kunnen de instellingen van eerder gedraaide analyses ook hergebruikt worden. Het is aanbevolen om deze pagina van boven naar beneden door te lopen, omdat sommige instellingen afhankelijk zijn van eerdere selectie.</p>
-        <?php if (in_array('mysql', $requestcompleted)) {
-            echo '<p class="warning">Kan aanvraag niet opslaan. Probeer het later nogmaals of meld het probleem als het zich blijft voordoen.</p>';
-        } ?>
 
         <h2>meetlocatie selectie</h2>
         <?php if (in_array('markers', $requestcompleted)) {
@@ -187,112 +386,151 @@ function validRequestCompleted() {
         }
         echo '</table>';
         ?>
-        <input type="hidden" name="markers" value="<?php echo htmlspecialchars($_POST['markers']); ?>">
+        <input type="hidden" name="markers" value="<?php echo htmlspecialchars($value['markers']); ?>">
 
         <h2>type analyse</h2>
         <?php if (in_array('type', $requestcompleted)) {
             echo '<p class="warning">Selecteer een type analyse.</p>';
         } ?>
-        <p>Kies hieronder het type analyse dat je wil maken. Dit bepaalt welke verdere instellingen nog gemaakt moeten worden. Mis je een type analyse, controleer dan <a href="index.php">op de kaart</a> of de juiste kaartlagen zijn ingeschakeld.</p>
+        <p>Kies hieronder het type analyse dat je wil maken. Mis je een type analyse, controleer dan <a href="index.php">op de kaart</a> of de juiste kaartlagen zijn ingeschakeld.</p>
         <dl>
-            <dt><input type="radio" name="type" id="form-type-1" value="diff"> <label for="form-type-1">Verschil</label></dt>
+            <dt><input type="radio" name="type" id="form-type-1" value="diff"<?php if ($value['type'] == 'diff') echo ' checked'; ?>> <label for="form-type-1">Verschil</label></dt>
             <dd>Bereken het verschil tussen twee perioden</dd>
-            <dt><input type="radio" name="type" id="form-type-2" value="trend"> <label for="form-type-2">Trend</label></dt>
+            <dt><input type="radio" name="type" id="form-type-2" value="trend"<?php if ($value['type'] == 'trend') echo ' checked'; ?>> <label for="form-type-2">Trend</label></dt>
             <dd>Bereken het verloop in de tijd over de som van de geselecteerde meetpunten</dd>
+            <dt><input type="radio" name="type" id="form-type-3" value="plot"<?php if ($value['type'] == 'plot') echo ' checked'; ?>> <label for="form-type-3">Plot</label></dt>
+            <dd>Maak een plot van de meetwaarden over de tijd</dd>
         </dl>
 
         <h2>Periode</h2>
-        <fieldset class="left">
-            <legend>Onderzoeksperiode</legend>
+        <?php 
+        for ($i = 1; $i <= 2; $i++) { 
+        $legend = (($i == 1) ? 'Onderzoeksperiode' : 'Vergelijken met basisperiode');
+        ?>
+        <fieldset class="left" id="form-period-select-<?php echo $i; ?>">
+            <legend><?php echo $legend; ?></legend>
             <fieldset>
             <legend>Datum</legend>
+            <?php
+            if (in_array('date-start' . $i, $requestcompleted)) {
+                echo '<p class="warning">Selecteer een geldige begindatum.</p>';
+            }
+            if (in_array('date-end' . $i, $requestcompleted)) {
+                echo '<p class="warning">Selecteer een geldige einddatum.</p>';
+            }
+            if (in_array('date-end-before-start' . $i, $requestcompleted)) {
+                echo '<p class="warning">Einddatum mag niet voor begindatum liggen.</p>';
+            }
+            ?>
             <table>
-            <tr><td><label for="form-date-start1">van:</label></td><td><input type="date" name="date-start1" id="form-date-start1" value="<?php echo date('Y-m-d', time() - 24*60*60); ?>" autocomplete="off" required></td></tr>
-            <tr><td><label for="form-date-end1">t/m:</label></td><td><input type="date" name="date-end1" id="form-date-end1" value="<?php echo date('Y-m-d', time() - 24*60*60); ?>" autocomplete="off" required></td></tr>
+                <tr>
+                    <td><label for="form-date-start<?php echo $i; ?>">van:</label></td>
+                    <td><input type="date" name="date-start<?php echo $i; ?>" id="form-date-start<?php echo $i; ?>" value="<?php echo $value['period'][$i]['date-start']; ?>" autocomplete="off" required></td>
+                </tr>
+                <tr>
+                    <td><label for="form-date-end<?php echo $i; ?>">t/m:</label></td
+                    ><td><input type="date" name="date-end<?php echo $i; ?>" id="form-date-end<?php echo $i; ?>" value="<?php echo $value['period'][$i]['date-end']; ?>" autocomplete="off" required></td>
+                </tr>
             </table>
             </fieldset>
             
             <fieldset>
             <legend>Tijd dagelijks</legend>
+            <?php
+            if (in_array('time-start' . $i, $requestcompleted)) {
+                echo '<p class="warning">Selecteer een geldige begintijd.</p>';
+            }
+            if (in_array('time-end' . $i, $requestcompleted)) {
+                echo '<p class="warning">Selecteer een geldige eindtijd.</p>';
+            }
+            ?>
             <table>
-            <tr><td><label for="form-time-start1">van:</label></td><td><input type="time" name="time-start1" id="form-time-start1" value="06:00" autocomplete="off" required></td></tr>
-            <tr><td><label for="form-time-end1">tot:</label></td><td><input type="time" name="time-end1" id="form-time-end1" value="21:59" autocomplete="off" required></td></tr>
+                <tr>
+                    <td><label for="form-time-start<?php echo $i; ?>">van:</label></td>
+                    <td><input type="time" name="time-start<?php echo $i; ?>" id="form-time-start<?php echo $i; ?>" value="<?php echo $value['period'][$i]['time-start']; ?>" autocomplete="off" required></td>
+                </tr>
+                <tr>
+                    <td><label for="form-time-end<?php echo $i; ?>">tot:</label></td>
+                    <td><input type="time" name="time-end<?php echo $i; ?>" id="form-time-end<?php echo $i; ?>" value="<?php echo $value['period'][$i]['time-end']; ?>" autocomplete="off" required></td>
+                </tr>
             </table>
             </fieldset>
             
-            <fieldset id="form-daysofweek1">
+            <fieldset id="form-daysofweek<?php echo $i; ?>">
             <legend>Dagen van de week</legend>
-            <input type="checkbox" value="2" name="daysofweek1[]" id="form-daysofweek1-2"> <label for="form-daysofweek1-2">ma</label>
-            <input type="checkbox" value="3" name="daysofweek1[]" id="form-daysofweek1-3"> <label for="form-daysofweek1-3">di</label>
-            <input type="checkbox" value="4" name="daysofweek1[]" id="form-daysofweek1-4"> <label for="form-daysofweek1-4">wo</label>
-            <input type="checkbox" value="5" name="daysofweek1[]" id="form-daysofweek1-5"> <label for="form-daysofweek1-5">do</label>
-            <input type="checkbox" value="6" name="daysofweek1[]" id="form-daysofweek1-6"> <label for="form-daysofweek1-6">vr</label>
-            <input type="checkbox" value="7" name="daysofweek1[]" id="form-daysofweek1-7"> <label for="form-daysofweek1-7">za</label>
-            <input type="checkbox" value="1" name="daysofweek1[]" id="form-daysofweek1-1"> <label for="form-daysofweek1-1">zo</label>
-            <br><a id="form-daysofweek1-selectworkdays">werkdagen</a> - <a id="form-daysofweek1-selecttuethu">di+do</a> - <a id="form-daysofweek1-selectweekend">weekend</a> - <a id="form-daysofweek1-selectall">weekdagen</a> - <a id="form-daysofweek1-selectnone">geen</a>
+            <?php
+            if (in_array('daysofweek' . $i, $requestcompleted)) {
+                echo '<p class="warning">Geen geldige weekdagen geselecteerd.</p>';
+            }
+            foreach ($daysofweek as $num => $val) {
+                echo '<input type="checkbox" value="' . $num .'" name="daysofweek' . $i .'[]" id="form-daysofweek' .$i .'-' . $num .'"';
+                if (in_array($num, $value['period'][$i]['daysofweek'])) echo ' checked';
+                echo '>';
+                echo ' <label for="form-daysofweek' . $i . '-' . $num .'">' . $val .'</label>';
+            }
+            ?>
+            <br>
+            <a id="form-daysofweek<?php echo $i; ?>-selectworkdays">werkdagen</a> - 
+            <a id="form-daysofweek<?php echo $i; ?>-selecttuethu">di+do</a> - 
+            <a id="form-daysofweek<?php echo $i; ?>-selectweekend">weekend</a> - 
+            <a id="form-daysofweek<?php echo $i; ?>-selectall">weekdagen</a> - 
+            <a id="form-daysofweek<?php echo $i; ?>-selectnone">geen</a>
             </fieldset>
         </fieldset>
-
-        <fieldset class="left" id="form-period-select-2">
-            <legend>Vergelijken met basisperiode</legend>
-            <fieldset>
-            <legend>Datum</legend>
-            <table>
-            <tr><td><label for="form-date-start2">van:</label></td><td><input type="date" name="date-start2" id="form-date-start2" value="<?php echo date('Y-m-d', time() - 24*60*60); ?>" autocomplete="off" required></td></tr>
-            <tr><td><label for="form-date-end2">t/m:</label></td><td><input type="date" name="date-end2" id="form-date-end2" value="<?php echo date('Y-m-d', time() - 24*60*60); ?>" autocomplete="off" required></td></tr>
-            </table>
-            </fieldset>
-            
-            <fieldset>
-            <legend>Tijd dagelijks</legend>
-            <table>
-            <tr><td><label for="form-time-start2">van:</label></td><td><input type="time" name="time-start2" id="form-time-start2" value="06:00" autocomplete="off" required></td></tr>
-            <tr><td><label for="form-time-end2">tot:</label></td><td><input type="time" name="time-end2" id="form-time-end2" value="21:59" autocomplete="off" required></td></tr>
-            </table>
-            </fieldset>
-            
-            <fieldset id="form-daysofweek2">
-            <legend>Dagen van de week</legend>
-            <input type="checkbox" value="2" name="daysofweek2[]" id="form-daysofweek2-2"> <label for="form-daysofweek2-2">ma</label>
-            <input type="checkbox" value="3" name="daysofweek2[]" id="form-daysofweek2-3"> <label for="form-daysofweek2-3">di</label>
-            <input type="checkbox" value="4" name="daysofweek2[]" id="form-daysofweek2-4"> <label for="form-daysofweek2-4">wo</label>
-            <input type="checkbox" value="5" name="daysofweek2[]" id="form-daysofweek2-5"> <label for="form-daysofweek2-5">do</label>
-            <input type="checkbox" value="6" name="daysofweek2[]" id="form-daysofweek2-6"> <label for="form-daysofweek2-6">vr</label>
-            <input type="checkbox" value="7" name="daysofweek2[]" id="form-daysofweek2-7"> <label for="form-daysofweek2-7">za</label>
-            <input type="checkbox" value="1" name="daysofweek2[]" id="form-daysofweek2-1"> <label for="form-daysofweek2-1">zo</label>
-            <br><a id="form-daysofweek2-selectworkdays">werkdagen</a> - <a id="form-daysofweek2-selecttuethu">di+do</a> - <a id="form-daysofweek2-selectweekend">weekend</a> - <a id="form-daysofweek2-selectall">weekdagen</a> - <a id="form-daysofweek2-selectnone">geen</a>
-            </fieldset>
-        </fieldset>
+        <?php } ?>
         <div class="clear"></div>
 
         <h2>Aggregatie</h2>
         <p>Selecteer het aggregatieniveau waarop de resultaten gepresenteerd moeten worden.</p>
+        <?php if (in_array('aggregate', $requestcompleted)) {
+            echo '<p class="warning">Selecteer een geldige aggregatieperiode.</p>';
+        } ?>
         <p><label for="form-aggregate">Aggregeer data per:</label>
             <select name="aggregate" id="form-aggregate" required>
-                <option value="h14">Kwartier</option>
-                <option value="h12">Halfuur</option>
-                <option value="h">Uur</option>
-                <option value="d" selected>Dag</option>
-                <option value="w">Week</option>
-                <option value="m">Maand</option>
-                <option value="q">Kwartaal</option>
-                <option value="y">Jaar</option>
+                <?php
+                foreach ($aggregateoptions as $val => $str) {
+                    echo '<option value="' . $val . '"';
+                    if ($value['aggregate'] == $val) echo ' selected';
+                    echo '>' . $str . '</option>';
+                }
+                ?>
             </select>
         </p>
 
         <h2>Databeschikbaarheid</h2>
         <p>Indien gewenst kunnen alleen meetlocaties met een minimale op te geven databeschikbaarheid worden meegenomen.</p>
-        <p><label for="form-availability">Minimale databeschikbaarheid per meetlocatie:</label> <input type="number" name="availability" id="form-availability" value="0" min="0" max="100" step="1" autocomplete="off" required>%</p>
+        <?php if (in_array('availability', $requestcompleted)) {
+            echo '<p class="warning">Beschikbaarheid moet een getal zijn van 0 tot 100.</p>';
+        } ?>
+        <p><label for="form-availability">Minimale databeschikbaarheid per meetlocatie:</label> <input type="number" name="availability" id="form-availability" value="<?php echo $value['availability']; ?>" min="0" max="100" step="1" autocomplete="off" required>%</p>
 
         <h2>prioriteit</h2>
-        <p>Kies hieronder met welke prioriteit de aanvraag moet worden uitgevoerd. Aanvragen met een uitgestelde prioriteit worden maximaal 24 uur in de wachtrij vastgehouden zolang er aanvragen met een normale prioriteit zijn.</p>
+        <p>Kies hieronder met welke prioriteit de aanvraag moet worden uitgevoerd. Aanvragen met een hoge prioriteit worden eerder in de wachtrij geplaatst. Aanvragen met een normale prioriteit die niet binnen 24 uur in behandeling kunnen worden genomen krijgen op dat moment hoge prioriteit. Voor aanvragen met een lage prioriteit geldt hetzelfde, maar dan na 72 uur.</p>
+        <?php if (in_array('name', $requestcompleted)) {
+            echo '<p class="warning">Selecteer een prioriteit voor deze aanvraag.</p>';
+        } ?>
         <p><label for="form-priority">Prioriteit:</label>
         <select name="priority" id="form-priority" required>
-            <option value="normal">Normaal</option>
-            <option value="delayed">Uitgesteld</option>
+            <?php
+            foreach ($priorityoptions as $val => $str) {
+                echo '<option value="' . $val . '"';
+                if ($value['priority'] == $val) echo ' selected';
+                echo '>' . $str . '</option>';
+            }
+            ?>    
         </select></p>
-        <p>E-mail bij gereed: <input type="radio" name="email" id="form-email-true" value="true" checked> <label for="form-email-true">Ja</label> <input type="radio" name="email" id="form-email-false" value="false"> <label for="form-email-false">Nee</label><br>
-        <span id="form-email-to-container"><label for="form-email-to">Stuur e-mail naar:</label> <input type="email" name="email-to" id="form-email-to" value=""></span></p>
+        <?php if (in_array('email', $requestcompleted)) {
+            echo '<p class="warning">Geef aan of je een e-mail wilt ontvangen zodra de aanvraag klaar is.</p>';
+        } ?>
+        <p>E-mail bij gereed: <input type="radio" name="email" id="form-email-true" value="true"<?php echo (($value['email'] == 'true') ? ' checked' : ''); ?>> <label for="form-email-true">Ja</label> <input type="radio" name="email" id="form-email-false" value="false"<?php echo (($value['email'] == 'false') ? ' checked' : ''); ?>> <label for="form-email-false">Nee</label><br>
+        <span id="form-email-to-container">E-mail wordt gestuurd naar: <?php echo htmlspecialchars(getuserdata('email')); ?></span></p>
+
+        <h2>Naam</h2>
+        <p>Geef je aanvraag een naam, zodat je deze later makkelijk terug kunt vinden.</p>
+        <?php if (in_array('name', $requestcompleted)) {
+            echo '<p class="warning">Geef je aanvraag een naam.</p>';
+        } ?>
+        <p><label for="form-name">Naam aanvraag:</label> <input type="text" maxlength="255" name="name" id="form-name" value="<?php echo $value['name']; ?>" required></p>
 
         <p><input type="submit" value="Aanvraag indienen"></p>
 

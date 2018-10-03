@@ -27,7 +27,7 @@ $menu = array (
     array('href' => 'request.php', 'title' => 'analyse maken', 'access' => $cfg_accesslevelaccesslevel['request'], 'block' => 1, 'maponly' => TRUE),
     array('href' => 'results.php', 'title' => 'mijn analyses', 'access' => $cfg_accesslevelaccesslevel['results'], 'block' => 1),
     array('href' => 'about.php', 'title' => 'over fietsv&#7433;ewer', 'access' => $cfg_accesslevelaccesslevel['about'], 'block' => 2),
-    array('href' => 'help.php', 'title' => 'help', 'access' => $cfg_accesslevelaccesslevel['help'], 'block' => 2),
+    //array('href' => 'help.php', 'title' => 'help', 'access' => $cfg_accesslevelaccesslevel['help'], 'block' => 2),
     array('href' => 'adddata.php', 'title' => 'data toevoegen', 'access' => $cfg_accesslevelaccesslevel['adddata'], 'block' => 2),
     array('href' => 'admin.php', 'title' => 'beheer', 'access' => $cfg_accesslevelaccesslevel['admin'], 'block' => 2),
     array('href' => 'account.php', 'title' => 'account', 'access' => 1, 'block' => 2),

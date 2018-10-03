@@ -579,8 +579,46 @@ FOREIGN KEY (`prefix_id`) REFERENCES `organisation_prefixes` (`id`)
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
+$qry[] = "CREATE TABLE `request_queue` (
+`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+`user_id` INT UNSIGNED NOT NULL,
+`name` TINYTEXT NOT NULL,
+`request_details` TEXT NOT NULL,
+`priority` TINYINT NOT NULL,
+`processed` BOOLEAN NOT NULL DEFAULT 0,
+`process_error` TEXT NULL DEFAULT NULL,
+`process_time` INT DEFAULT NULL,
+`date_create` DATETIME NOT NULL,
+`date_lastchange` DATETIME NOT NULL,
+PRIMARY KEY (`id`),
+FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+)
+ENGINE = 'InnoDB'
+COLLATE 'utf8_general_ci'";
+
+$qry[] = "CREATE TABLE `reports` (
+`id` INT UNSIGNED NOT NULL,
+`user_id` INT UNSIGNED NOT NULL,
+`name` TINYTEXT NOT NULL,
+`worker` VARCHAR(32) NOT NULL,
+`process_error` BOOLEAN NOT NULL DEFAULT 0,
+`result` MEDIUMBLOB NULL,
+`date_create` DATETIME NOT NULL,
+`date_lastchange` DATETIME NOT NULL,
+PRIMARY KEY (`id`),
+FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+)
+ENGINE = 'InnoDB'
+COLLATE 'utf8_general_ci'";
+
 $qry[] = "ALTER TABLE `organisations` 
 ADD `abbr` VARCHAR(32) NOT NULL";
+
+$qry[] = "ALTER TABLE `request_queue` 
+ADD `send_email` BOOLEAN NOT NULL DEFAULT 0 AFTER `priority`";
+
+$qry[] = "ALTER TABLE `request_queue` 
+ADD `worker` VARCHAR(32) NOT NULL AFTER `name`";
 
 $qry[] = "UPDATE `organisations` 
 SET `abbr` = 'SYS'
