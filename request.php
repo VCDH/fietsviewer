@@ -105,6 +105,7 @@ function validRequestCompleted() {
         $errors[] = 'markers';
     }
     //check analysis type
+    //TODO: workers inlezen uit worker-directory
     $type = NULL;
     $valid_types = array ('flow' => array ('diff', 'trend'));
     $available_types = array_intersect_key($valid_types, $requestedMarkers);
@@ -396,7 +397,9 @@ if ($requestcompleted === TRUE) {
         <h2>type analyse</h2>
         <?php if (in_array('type', $requestcompleted)) {
             echo '<p class="warning">Selecteer een type analyse.</p>';
-        } ?>
+        } 
+        //TODO: workers inlezen uit worker-directory
+        ?>
         <p>Kies hieronder het type analyse dat je wil maken. Mis je een type analyse, controleer dan <a href="index.php">op de kaart</a> of de juiste kaartlagen zijn ingeschakeld.</p>
         <dl>
             <dt><input type="radio" name="type" id="form-type-1" value="diff"<?php if ($value['type'] == 'diff') echo ' checked'; ?>> <label for="form-type-1">Verschil</label></dt>

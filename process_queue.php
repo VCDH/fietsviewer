@@ -30,6 +30,7 @@ require_once 'functions/csv_functions.php';
 $runningfile = substr($_SERVER['SCRIPT_NAME'], strrpos($_SERVER['SCRIPT_NAME'], '/'), strrpos($_SERVER['SCRIPT_NAME'], '.') - strlen($_SERVER['SCRIPT_NAME'])) . '.running';
 $timeout = 1800; //seconds
 $tmp_data_file = 'tmp_data.csv';
+set_time_limit(0);
 
 /*
 * Script startup
@@ -493,6 +494,7 @@ ORDER BY `upload_queue`.`date_create` ASC";
 $res = mysqli_query($db['link'], $qry);
 if (mysqli_num_rows($res)) {
     while ($row = mysqli_fetch_row($res)) {
+        update_running_file();
         $process_time = time();
         //update processed time to indicate processing has started
         $qry2 = "UPDATE `upload_queue`
