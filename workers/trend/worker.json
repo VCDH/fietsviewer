@@ -1,0 +1,6 @@
+{
+    "name": "Trend",
+    "desc": "Bereken het verloop in de tijd over de som van de geselecteerde meetpunten",
+    "layers": ["flow"],
+    "periods": 1
+}

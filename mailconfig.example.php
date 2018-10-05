@@ -24,4 +24,8 @@ $cfg['mail']['Port'] = 587;                                    // TCP port to co
 $cfg['mail']['subject']['lostpass'] = 'fietsviewer wachtwoord';
 $cfg['mail']['message']['lostpass'] = '<p>Beste {{NAME}},</p><p>Je nieuwe wachtwoord voor fietsviewer is:<br>{{PASSWORD}}</p><p>Met vriendelijke groeten,<br>fietsviewer</p>';
 
+//TODO: auto upgrade path for mailconfig (and possibly other config files?) from install.php
+$cfg['mail']['subject']['request_done'] = 'fietsviewer analyse gereed';
+$cfg['mail']['message']['request_done'] = '<p>Beste {{NAME}},</p><p>De aanvraag <i>{{REQUEST_NAME}}</i> is gereed en kan worden opgevraagd via <a href="{{URL}}">{{URL}}</a>.</p><p>Met vriendelijke groeten,<br>fietsviewer</p>';
+
 ?>

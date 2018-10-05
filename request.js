@@ -63,7 +63,7 @@ function showHideEmailTo() {
 * function to show/hide form-period-select-2
 */
 function showHidePeriodSelect2() {
-	if ($('input[name=type]:checked').val() == 'diff') {
+	if ($('input[name=type]:checked').attr('class') == 'form-worker-periods-2') {
 		$('#form-period-select-2').show();
 	}
 	else {

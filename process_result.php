@@ -106,7 +106,6 @@ if (mysqli_num_rows($res)) {
     mysqli_query($db['link'], $qry);
     //TODO: data availability check and update for request_details
 
-
     //include worker
     $worker = 'workers/' . $data['worker'] . '/process.inc.php';
     if (file_exists($worker)) {
@@ -142,14 +141,26 @@ if (mysqli_num_rows($res)) {
     }
     $qry .= " WHERE `id` = " . $data['id'];
     mysqli_query($db['link'], $qry);
-    //TODO send email
     if ($data['send_email'] == '1') {
         //get email address from user
-
-        //prepare message
-
-        //send message
-        
+        $qry = "SELECT `name`, `email` FROM `users`
+        WHERE `id` = " . $data['user_id'];
+        $res = mysqli_query($db['link'], $qry);
+        if (mysqli_num_rows($res)) {
+            $user_details = mysqli_fetch_assoc($res);
+            require_once 'mailconfig.inc.php';
+            require_once 'functions/send_mail.php';
+            //prepare message
+            $to = $user_details['email'];
+            //TODO: this doesn't work
+            $url_base = file_get_contents('url_base');
+            $request_url = $url_base . '/result.php?id=' . $data['id'];
+            $subject = $cfg['mail']['subject']['request_done'];
+            $message = $cfg['mail']['message']['request_done'];
+            $message = str_replace(array('{{NAME}}', '{{REQUEST_NAME}}', '{{URL}}'), array(htmlspecialchars($user_details['name']), htmlspecialchars($data['name']), $request_url), $message);
+            //send email
+            send_mail($to, $subject, $message);
+        }
     }
 }
 
@@ -172,7 +183,7 @@ unlink($runningfile);
 //restart script
 if ($restart == TRUE) {
     require_once 'functions/execInBackground.php';
-    sleep(1);
+    sleep(2); //to allow for disk IO
     execInBackground('php process_result.php');
 }
 exit;

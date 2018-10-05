@@ -52,7 +52,6 @@ function reset_password($username) {
 		mysqli_query($db['link'], $sql);
 		//prepare email
 		$to = $data['email'];
-		//TODO
 		$subject = $cfg['mail']['subject']['lostpass'];
 		$message = $cfg['mail']['message']['lostpass'];
 		//$subject = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data[1]), $new_password), $subject);

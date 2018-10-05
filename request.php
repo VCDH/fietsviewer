@@ -63,6 +63,7 @@ function checkSelectedMarkers($json_markers) {
         return FALSE;
     }
     $returnedMarkers = array();
+    $distinctLayers = array();
     //loop layers
     foreach ($requestedMarkers as $layer => $markers) {
         //loop markers
@@ -76,13 +77,16 @@ function checkSelectedMarkers($json_markers) {
                 if (mysqli_num_rows($res)) {
                     $data = mysqli_fetch_assoc($res);
                     $data['layer'] = $layer;
+                    if (!in_array($layer, $distinctLayers)) {
+                        $distinctLayers[] = $layer;
+                    }
                     $returnedMarkers[] = $data;
                 }
             }
         }
     }
     if (!empty($returnedMarkers)) {
-        return $returnedMarkers;
+        return array($returnedMarkers, $distinctLayers);
     }
     return FALSE;
 }
@@ -208,6 +212,10 @@ function addRequestToQueue() {
     }
     $req_details = json_encode($req_details);
 
+    //build and store request base URL;
+    //this has to be done here, because this cannot be established from commandline
+    $url_base = $_SERVER["REQUEST_SCHEME"] . '://' . $_SERVER['SERVER_NAME'] . dirname($_SERVER["SCRIPT_NAME"]);
+    file_put_contents('url_base', $url_base);
     //add to database
     require 'dbconnect.inc.php';
     $qry = "INSERT INTO `request_queue` SET
@@ -302,9 +310,39 @@ function getValuesForForm() {
     return $data;
 }
 
+/*
+* load details of available workers
+*/
+function loadWorkers($distinctlayers) {
+    $workers = array();
+    //load workers from worker-directory
+    $dir = 'workers';
+    $dirlist = scandir($dir);
+    foreach ($dirlist as $i) {
+        if (is_dir($dir . '/' . $i) && (substr($i, 0, 1) != '.')) {
+            $worker_config_file = $dir . '/' . $i . '/worker.json';
+            if (is_file($worker_config_file)) {
+                $json = file_get_contents($worker_config_file);
+                $json = json_decode($json, TRUE);
+                //check if required data layers are selected for this worker
+                $intersect = array_intersect($distinctlayers, $json['layers']);
+                if (($json !== NULL) && !empty($intersect)) {
+                    //add worker to list
+                    $workers[$i] = $json;
+                }
+            }
+        }
+    }
+    return $workers;
+}
+
+
 //process requests
 $value = getValuesForForm();
-$selectedmarkers = checkSelectedMarkers($value['markers']);
+$selectedmarkerschecked = checkSelectedMarkers($value['markers']);
+$selectedmarkers = $selectedmarkerschecked[0];
+$distinctlayers = $selectedmarkerschecked[1];
+$workers = loadWorkers($distinctlayers);
 $requestcompleted = validRequestCompleted();
 if ($requestcompleted === TRUE) {
     $requestcompleted = addRequestToQueue();
@@ -398,17 +436,22 @@ if ($requestcompleted === TRUE) {
         <?php if (in_array('type', $requestcompleted)) {
             echo '<p class="warning">Selecteer een type analyse.</p>';
         } 
-        //TODO: workers inlezen uit worker-directory
+        //display workers
+        if (empty($workers)) {
+            echo '<p class="error">Geen <i>workers</i> aangetroffen. Kan geen analyse maken.</p>';
+        }
+        else {
+            echo '<p>Kies hieronder het type analyse dat je wil maken. Mis je een type analyse, controleer dan <a href="index.php">op de kaart</a> of de juiste kaartlagen zijn ingeschakeld.</p>';
+            echo '<dl>';
+            foreach ($workers as $worker => $details) {
+                echo '<dt><input type="radio" name="type" id="form-type-' . $worker . '" value="' . $worker . '" class="form-worker-periods-' . htmlspecialchars($details['periods']) . '"';
+                if ($value['type'] == $worker) echo ' checked';
+                echo '> <label for="form-type-' . $worker . '">' . htmlspecialchars($details['name']) . '</label></dt>';
+                echo '<dd>' . htmlspecialchars($details['desc']) . '</dd>';
+            }
+            echo '</dl>';
+        }
         ?>
-        <p>Kies hieronder het type analyse dat je wil maken. Mis je een type analyse, controleer dan <a href="index.php">op de kaart</a> of de juiste kaartlagen zijn ingeschakeld.</p>
-        <dl>
-            <dt><input type="radio" name="type" id="form-type-1" value="diff"<?php if ($value['type'] == 'diff') echo ' checked'; ?>> <label for="form-type-1">Verschil</label></dt>
-            <dd>Bereken het verschil tussen twee perioden</dd>
-            <dt><input type="radio" name="type" id="form-type-2" value="trend"<?php if ($value['type'] == 'trend') echo ' checked'; ?>> <label for="form-type-2">Trend</label></dt>
-            <dd>Bereken het verloop in de tijd over de som van de geselecteerde meetpunten</dd>
-            <dt><input type="radio" name="type" id="form-type-3" value="plot"<?php if ($value['type'] == 'plot') echo ' checked'; ?>> <label for="form-type-3">Plot</label></dt>
-            <dd>Maak een plot van de meetwaarden over de tijd</dd>
-        </dl>
 
         <h2>Periode</h2>
         <?php 
