@@ -162,18 +162,12 @@ if (mysqli_num_rows($res)) {
             send_mail($to, $subject, $message);
         }
     }
-}
-
-//script cannot run in loop because of functions that may need to be redefined, so it must me restarted for each job in the queue
-//check if it needs to be restarted
-$restart = FALSE;
-$qry = "SELECT `id` FROM `request_queue`
-WHERE `processed` = 0
-AND `process_time` IS NULL
-LIMIT 1";
-$res = mysqli_query($db['link'], $qry);
-if (mysqli_num_rows($res)) {
+    //restart script after this
     $restart = TRUE;
+}
+else {
+    //no job, so terminate script
+    $restart = FALSE;
 }
 
 /*
@@ -182,6 +176,7 @@ if (mysqli_num_rows($res)) {
 unlink($runningfile);
 //restart script
 if ($restart == TRUE) {
+    //script cannot run in loop because of functions that may need to be redefined, so it must me restarted for each job in the queue
     require_once 'functions/execInBackground.php';
     sleep(2); //to allow for disk IO
     execInBackground('php process_result.php');

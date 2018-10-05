@@ -490,47 +490,60 @@ LEFT JOIN `datasets`
 ON `upload_queue`.`dataset_id` =  `datasets`.`id`
 WHERE
 `upload_queue`.`processed` = 0
-ORDER BY `upload_queue`.`date_create` ASC";
+ORDER BY `upload_queue`.`date_create` ASC
+LIMIT 1";
 $res = mysqli_query($db['link'], $qry);
 if (mysqli_num_rows($res)) {
-    while ($row = mysqli_fetch_row($res)) {
-        update_running_file();
-        $process_time = time();
-        //update processed time to indicate processing has started
-        $qry2 = "UPDATE `upload_queue`
-        SET `process_time` = 0,
-        `date_lastchange` = NOW()
-        WHERE `id` = ".$row[0];
-        mysqli_query($db['link'], $qry2);
+    $row = mysqli_fetch_row($res);
+    update_running_file();
+    $process_time = time();
+    //update processed time to indicate processing has started
+    $qry2 = "UPDATE `upload_queue`
+    SET `process_time` = 0,
+    `date_lastchange` = NOW()
+    WHERE `id` = ".$row[0];
+    mysqli_query($db['link'], $qry2);
 
-        //process and import uploaded file to importable format
-        $file = $cfg['upload']['dir'];
-        //add trailing slash if needed
-        if (substr($file, -1) != '/') {
-            $file .= '/';
-        }
-        $file .= $row[1];
-        $output = process_uploaded_file($file, $row[2], $row[3], $row[4]);
-        //update database with result
-        If (!empty($output) && is_array($output)) {
-            $output = join(PHP_EOL, $output);
-        }
-        $process_time = time() - $process_time;
-        $qry2 = "UPDATE `upload_queue`
-        SET `process_time` = " . $process_time . ",
-        `processed` = 1,
-        `date_lastchange` = NOW() " .
-        ((!empty($output)) ? ", `process_error` = '" . $output . "' " : '') .
-        "WHERE `id` = ".$row[0];
-        mysqli_query($db['link'], $qry2);
-        //unlink temporary file
-        unlink($file);
+    //process and import uploaded file to importable format
+    $file = $cfg['upload']['dir'];
+    //add trailing slash if needed
+    if (substr($file, -1) != '/') {
+        $file .= '/';
     }
+    $file .= $row[1];
+    $output = process_uploaded_file($file, $row[2], $row[3], $row[4]);
+    //update database with result
+    If (!empty($output) && is_array($output)) {
+        $output = join(PHP_EOL, $output);
+    }
+    $process_time = time() - $process_time;
+    $qry2 = "UPDATE `upload_queue`
+    SET `process_time` = " . $process_time . ",
+    `processed` = 1,
+    `date_lastchange` = NOW() " .
+    ((!empty($output)) ? ", `process_error` = '" . $output . "' " : '') .
+    "WHERE `id` = ".$row[0];
+    mysqli_query($db['link'], $qry2);
+    //unlink temporary file
+    unlink($file);
+    //restart script after this
+    $restart = TRUE;
+}
+else {
+    //no job, so terminate script
+    $restart = FALSE;
 }
 
 /*
 * terminate script
 */
 unlink($runningfile);
+//restart script
+if ($restart == TRUE) {
+    //script cannot run in loop because of functions that may need to be redefined, so it must me restarted for each job in the queue
+    require_once 'functions/execInBackground.php';
+    sleep(2); //to allow for disk IO
+    execInBackground('php process_result.php');
+}
 exit;
 ?>
