@@ -24,19 +24,18 @@ require 'accesslevels.inc.php';
 //TODO move access level to separate config
 $menu = array (
     array('href' => 'index.php', 'title' => 'kaart weergeven', 'access' => 0, 'block' => 1),
-    array('href' => 'request.php', 'title' => 'analyse maken', 'access' => $cfg_accesslevelaccesslevel['request'], 'block' => 1, 'maponly' => TRUE),
-    array('href' => 'results.php', 'title' => 'mijn analyses', 'access' => $cfg_accesslevelaccesslevel['results'], 'block' => 1),
-    array('href' => 'about.php', 'title' => 'over fietsv&#7433;ewer', 'access' => $cfg_accesslevelaccesslevel['about'], 'block' => 2),
+    array('href' => 'request.php', 'title' => 'analyse maken', 'access' => $cfg_accesslevel['request'], 'block' => 1, 'maponly' => TRUE),
+    array('href' => 'results.php', 'title' => 'mijn analyses', 'access' => $cfg_accesslevel['results'], 'block' => 1),
+    array('href' => 'about.php', 'title' => 'over fietsv&#7433;ewer', 'access' => $cfg_accesslevel['about'], 'block' => 2),
     //array('href' => 'help.php', 'title' => 'help', 'access' => $cfg_accesslevelaccesslevel['help'], 'block' => 2),
-    array('href' => 'adddata.php', 'title' => 'data toevoegen', 'access' => $cfg_accesslevelaccesslevel['adddata'], 'block' => 2),
-    array('href' => 'admin.php', 'title' => 'beheer', 'access' => $cfg_accesslevelaccesslevel['admin'], 'block' => 2),
+    array('href' => 'adddata.php', 'title' => 'data toevoegen', 'access' => $cfg_accesslevel['adddata'], 'block' => 2),
+    array('href' => 'admin.php', 'title' => 'beheer', 'access' => $cfg_accesslevel['admin'], 'block' => 2),
     array('href' => 'account.php', 'title' => 'account', 'access' => 1, 'block' => 2),
     array('href' => 'login.php', 'title' => 'aanmelden', 'access' => -1, 'block' => 2),
     array('href' => 'login.php?a=logout', 'title' => 'afmelden', 'access' => 1, 'block' => 2),
 );
 
 //check login
-$login = getuserdata();
 $accesslevel = getuserdata('accesslevel');
 $currentpage = basename($_SERVER["PHP_SELF"]);
 
@@ -45,18 +44,24 @@ echo '<div id="menu-top-bar">';
 echo '<div id="menu-top-bar-1">';
 echo '<strong>fietsv&#7433;ewer</strong>';
 foreach ($menu as $item) {
-    if (($item['block'] == 1) && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) && ((($item['access'] >= 0) && ($item['access'] <= $accesslevel)) || (($accesslevel == 0) && ($item['access'] < 0))) && (($item['maponly'] != TRUE) || ($currentpage == 'index.php'))) {
+    if (($item['block'] == 1) 
+    && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) 
+    && ((($item['access'] >= 0) && ($accesslevel >= $item['access'])) || (($accesslevel == 0) && ($item['access'] < 0))) 
+    && (($item['maponly'] != TRUE) || ($currentpage == 'index.php'))) {
         echo ' | <a href="' . $item['href'] . '" title="' . $item['title'] . '">' . $item['title'] . '</a>';
     }
 }
 echo '</div>';
 echo '<div id="menu-top-bar-2">';
 foreach ($menu as $item) {
-    if (($item['block'] == 2) && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) && ((($item['access'] >= 0) && ($item['access'] <= $accesslevel)) || (($accesslevel == 0) && ($item['access'] < 0))) && (($item['maponly'] != TRUE) || ($currentpage == 'index.php'))) {
+    if (($item['block'] == 2) 
+    && ($currentpage != substr($item['href'], 0, strpos($item['href'], '.php') + 4)) 
+    && ((($item['access'] >= 0) && ($accesslevel >= $item['access'])) || (($accesslevel == 0) && ($item['access'] < 0))) 
+    && (($item['maponly'] != TRUE) || ($currentpage == 'index.php'))) {
         echo '<a href="' . $item['href'] . '" title="' . $item['title'] . '">' . $item['title'] . '</a> | ';
     }
 }
-if ($login == TRUE) {
+if ($accesslevel !== FALSE) {
     echo htmlspecialchars(getuserdata('username'));
 }
 else {
