@@ -33,7 +33,7 @@ De grafische interface is geschreven in HTML5 in combinatie met JavaScript.
 Hiervoor is een recente webbrowser met ondersteuning voor HTML5 nodig. Primaire 
 ontwikkeling vindt plaats in Mozilla Firefox. Er wordt gebruik gemaakt van de 
 standaardlibraries JQuery, Leaflet in combinatie met OpenStreetMap, 
-Leaflet Rotated Marker en JavaScript Cookie.
+Leaflet Rotated Marker, JavaScript Cookie en Chart.js.
 
 De backend is geschreven in PHP (5.3+) en gebruikt een MySQL (5+) of 
 MariaDB (5+) DBMS.  Voor PHP < 5.5.0 wordt gebruik gemaakt van de bibliotheek
@@ -45,6 +45,7 @@ Leaflet: https://leafletjs.com
 Leaflet Rotated Marker: https://github.com/bbecquet/Leaflet.RotatedMarker
 OpenStreetMap: https://www.openstreetmap.org
 JavaScript Cookie: https://github.com/js-cookie/js-cookie
+Chart.js: http://www.chartjs.org
 PHP: http://php.net
 password_compat: https://github.com/ircmaxell/password_compat
 PHPMailer: https://github.com/PHPMailer/PHPMailer
