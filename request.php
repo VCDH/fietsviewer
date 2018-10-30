@@ -37,8 +37,8 @@ $daysofweek = array (
     1 => 'zo'
 );
 $aggregateoptions = array (
-    'h14' => 'Kwartier',
-    'h12' => 'Halfuur',
+    //'h14' => 'Kwartier',
+    //'h12' => 'Halfuur',
     'h' => 'Uur',
     'd' => 'Dag',
     'w' => 'Week',
@@ -111,7 +111,7 @@ function validRequestCompleted() {
     //check analysis type
     //TODO: workers inlezen uit worker-directory
     $type = NULL;
-    $valid_types = array ('flow' => array ('diff', 'trend'));
+    $valid_types = array ('flow' => array ('diff', 'trend', 'plot'));
     $available_types = array_intersect_key($valid_types, $requestedMarkers);
     if (empty($available_types)) {
         $errors[] = 'layer';
@@ -198,7 +198,7 @@ function validRequestCompleted() {
 function addRequestToQueue() {
     //prepare request details
     $req_details = array();
-    $req_details['markers'] = $_POST['markers'];
+    $req_details['markers'] = json_decode($_POST['markers']);
     $req_details['aggregate'] = $_POST['aggregate'];
     $req_details['availability'] = $_POST['availability'];
     $req_details['period'] = array();
@@ -301,6 +301,7 @@ function getValuesForForm() {
             $data['priority'] = $assoc['priority'];
             $data['email'] = ($assoc['send_email'] == 1) ? 'true' : 'false';
             $data['name'] = htmlspecialchars($assoc['name'] . ' - kopie');
+            $data['markers'] = json_encode($data['markers']);
         }
     }
     //request from map view
@@ -521,10 +522,10 @@ if ($requestcompleted === TRUE) {
             }
             ?>
             <br>
+            <a id="form-daysofweek<?php echo $i; ?>-selectall">alle</a> - 
             <a id="form-daysofweek<?php echo $i; ?>-selectworkdays">werkdagen</a> - 
             <a id="form-daysofweek<?php echo $i; ?>-selecttuethu">di+do</a> - 
             <a id="form-daysofweek<?php echo $i; ?>-selectweekend">weekend</a> - 
-            <a id="form-daysofweek<?php echo $i; ?>-selectall">weekdagen</a> - 
             <a id="form-daysofweek<?php echo $i; ?>-selectnone">geen</a>
             </fieldset>
         </fieldset>
@@ -547,14 +548,16 @@ if ($requestcompleted === TRUE) {
                 ?>
             </select>
         </p>
-
+        <!--
         <h2>Databeschikbaarheid</h2>
         <p>Indien gewenst kunnen alleen meetlocaties met een minimale op te geven databeschikbaarheid worden meegenomen.</p>
         <?php if (in_array('availability', $requestcompleted)) {
             echo '<p class="warning">Beschikbaarheid moet een getal zijn van 0 tot 100.</p>';
         } ?>
         <p><label for="form-availability">Minimale databeschikbaarheid per meetlocatie:</label> <input type="number" name="availability" id="form-availability" value="<?php echo $value['availability']; ?>" min="0" max="100" step="1" autocomplete="off" required>%</p>
-
+        -->
+        <input type="hidden" name="availability" value="0">
+        
         <h2>prioriteit</h2>
         <p>Kies hieronder met welke prioriteit de aanvraag moet worden uitgevoerd. Aanvragen met een hoge prioriteit worden eerder in de wachtrij geplaatst. Aanvragen met een normale prioriteit die niet binnen 24 uur in behandeling kunnen worden genomen krijgen op dat moment hoge prioriteit. Voor aanvragen met een lage prioriteit geldt hetzelfde, maar dan na 72 uur.</p>
         <?php if (in_array('name', $requestcompleted)) {
