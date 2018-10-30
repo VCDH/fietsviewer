@@ -35,6 +35,25 @@ if ($_GET['do'] == 'cancel') {
     $delete_result = mysqli_query($db['link'], $qry);
 }
 
+/*
+* remove a request after it is completed
+*/
+elseif ($_GET['do'] == 'remove') {
+    //check if request may be removed and if so remove it
+    $qry = "DELETE FROM `request_queue` WHERE
+    `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
+    AND `processed` = 1
+    AND `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
+    $remove_result = mysqli_query($db['link'], $qry);
+    //remove report as well
+    if ($remove_result === TRUE) {
+        $qry = "DELETE FROM `reports` WHERE
+        `user_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "'
+        AND `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'";
+        mysqli_query($db['link'], $qry);
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -52,7 +71,7 @@ if ($_GET['do'] == 'cancel') {
     
     
     <h1>mijn analyses</h1>
-
+    <p><a href="?">vernieuwen</a></p>
     <?php
     //queue
     echo '<h2>in wachtrij</h2>';
@@ -62,6 +81,12 @@ if ($_GET['do'] == 'cancel') {
     }
     elseif ($delete_result === FALSE) {
         echo '<p class="error">Aanvraag kan niet worden verwijderd. Mogelijk bestaat de aanvraag niet meer, of is deze al in behandeling genomen.</p>';
+    }
+    elseif ($remove_result === TRUE) {
+        echo '<p class="success">Rapport is verwijderd.</p>';
+    }
+    elseif ($remove_result === FALSE) {
+        echo '<p class="error">Rapport kan niet worden verwijderd. Waarom dat is, is niet geheel duidelijk.</p>';
     }
     //list
     $qry = "SELECT `id`, `name`, `worker`, `priority`, `date_create` FROM `request_queue` WHERE
@@ -95,7 +120,7 @@ if ($_GET['do'] == 'cancel') {
         echo '</table>';
     }
     else {
-        echo '<p>Er zijn geen aanvragen in de wachtrij. Ga naar de <a href="index.php">kaart</a> om iets leuks te doen.</p>';
+        echo '<p>Er zijn geen aanvragen in de wachtrij. Ga naar de <a href="index.php">kaart</a> om een nieuwe aanvraag te starten.</p>';
     }
 
     //being processed
@@ -142,7 +167,7 @@ if ($_GET['do'] == 'cancel') {
     $res = mysqli_query($db['link'], $qry);
     if (mysqli_num_rows($res)) {
         echo '<table>';
-        echo '<tr><th>Naam</th><th>Type</th><th>Datum aanvraag</th><th></th><th></th></td>';
+        echo '<tr><th>Naam</th><th>Type</th><th>Datum aanvraag</th><th></th><th></th><th></th></td>';
         while ($data = mysqli_fetch_assoc($res)) {
             echo '<tr><td>';
             echo htmlspecialchars($data['name']);
@@ -154,6 +179,8 @@ if ($_GET['do'] == 'cancel') {
             echo '<a href="report.php?id=' . $data['id'] . '">Bekijk resultaat</a>';
             echo '</td><td>';
             echo '<a href="request.php?id=' . $data['id'] . '">Hergebruiken</a>';
+            echo '</td><td>';
+            echo '<a href="?do=remove&amp;id=' . $data['id'] . '" class="cancelbutton">Verwijderen</a>';
             echo '</td></tr>';
         }
         echo '</table>';
