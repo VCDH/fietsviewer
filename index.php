@@ -21,10 +21,12 @@
 <head>
 	<title>fietsv&#7433;ewer</title>
 	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="jquery-ui/jquery-ui.min.css">
 	<link rel="stylesheet" type="text/css" href="leaflet/leaflet.css">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link rel="stylesheet" type="text/css" href="map.css">
 	<script src="jquery/jquery-3.3.1.min.js"></script>
+	<script src="jquery-ui/jquery-ui.min.js"></script>
 	<script src="js-cookie/js.cookie.min.js"></script>
 	<script src="leaflet/leaflet.js"></script>
 	<script src="Leaflet.RotatedMarker/leaflet.rotatedMarker.js"></script>
@@ -33,28 +35,38 @@
 <body>
 	<div id="map"></div>
 	<div id="map-options-container">
-		<div id="map-tile">
-			<fieldset>
-			<legend>Kaartachtergrond</legend>
+		
+		<h3>Kaartachtergrond</h3>
+			<div id="map-tile">
 				<input type="radio" name="map-tile" id="map-tile-osm"><label for="map-tile-osm">OpenStreetMap</label><br>
 				<input type="radio" name="map-tile" id="map-tile-cycle"><label for="map-tile-cycle">OpenCycleMap</label>
-			</fieldset>
-		</div>
-		<div id="map-style">
-			<fieldset>
-			<legend>Kaartweergave</legend>
+			</div>
+		
+		<h3>Kaartweergave</h3>	
+			<div id="map-style">
 				<input type="radio" name="map-style" id="map-style-default"><label for="map-style-default">Standaard</label><br>
 				<input type="radio" name="map-style" id="map-style-lighter"><label for="map-style-lighter">Lichter</label><br>
 				<input type="radio" name="map-style" id="map-style-grayscale"><label for="map-style-grayscale">Grijswaarden</label><br>
 				<input type="radio" name="map-style" id="map-style-dark"><label for="map-style-dark">Donker</label><br>
 				<input type="radio" name="map-style" id="map-style-oldskool"><label for="map-style-oldskool">Vergeeld</label>
-			</fieldset>
-		</div>
-		<div id="map-layers">
-			<fieldset>
-			<legend>Kaartlagen</legend>
-			</fieldset>
-		</div>
+			</div>
+
+		<h3>Kaartlagen</h3>	
+			<div id="map-layers">
+			
+			</div>
+		<h3>Filter: meetmethode</h3>	
+			<div id="filter-method">
+			
+			</div>
+		<h3>Filter: organisatie</h3>	
+			<div id="filter-org">
+			
+			</div>
+		<h3>Filter: dataset</h3>	
+			<div id="filter-set">
+			
+			</div>
 	</div>
 
 	<div id="map-timecontrol-container">

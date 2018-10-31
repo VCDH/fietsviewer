@@ -120,6 +120,7 @@ elseif ($_GET['layer'] == 'waittime') {
 	}
 }
 
+header('Content-Type: application/json');
 echo json_encode($json, JSON_FORCE_OBJECT);
 
 ?>

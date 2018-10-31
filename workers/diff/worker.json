@@ -1,6 +1,6 @@
 {
     "name": "Verschil",
-    "desc": "Bereken het verschil tussen twee perioden, de meetlocaties worden per periode gesommeerd",
+    "desc": "Het verschil tussen twee perioden, de meetlocaties worden per periode gesommeerd",
     "layers": ["flow"],
     "periods": 2
 }

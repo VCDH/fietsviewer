@@ -117,6 +117,7 @@ elseif ($_GET['layer'] == 'waittime') {
 
 $json['popup'] .= '<p><a href="https://www.google.nl/maps/?q=' . $data['lat'] . ',' . $data['lon'] . '&amp;layer=c&cbll=' . $data['lat'] . ',' . $data['lon'] . '&amp;cbp=11,' . $data['heading'] . ',0,0,5" target="_blank">Open locatie in Google Street View&trade;</a></p>';
 
+header('Content-Type: application/json');
 echo json_encode($json, JSON_FORCE_OBJECT);
 
 ?>

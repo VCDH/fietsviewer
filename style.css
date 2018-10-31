@@ -40,6 +40,7 @@ legend {
 	left: 0;
 	top: 0;
 	width: calc(100% - 8px);
+	height: 18px;
 	background-color: #FFF;
 	border-bottom: 1px solid #666;
 	padding: 4px;

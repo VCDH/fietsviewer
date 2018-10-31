@@ -157,7 +157,7 @@ function initMap() {
 	//add tile layer
 	setMapTileLayer(tileLayer);
 	//modify some map controls
-	map.zoomControl.setPosition('bottomright');
+	map.zoomControl.setPosition('topleft');
 	L.control.scale().addTo(map);
 	//store map position and zoom in cookie
 	map.on('load moveend', function() {
@@ -263,28 +263,16 @@ function updateMapLayers() {
 * Load/update markers for map layer
 */
 function loadMarkers(layer) {
-	var icon = L.icon({
-		iconUrl: 'img/icon_arrow.png',
-		iconSize: [16,16],
-		className: 'map-icon-flow'
-	});
 	//check if layer has entry in makers object and add it if not
 	if (!markers.hasOwnProperty(layer)) {
 		markers[layer] = [];
 	}
-	//discard markers that are out of bounds
-	else {
-		for (var i = markers[layer].length - 1; i >= 0; i--) {
-			if (!map.getBounds().contains(markers[layer][i].getLatLng())) {
-				markers[layer][i].remove();
-				markers[layer].splice(i, 1);
-			}
-		}
-	}
-	
-	$.getJSON('maplayer.php', { layer: layer, bounds: map.getBounds().toBBoxString() })
+	//draw new markers if they are not already drawn
+	var visibleMarkerIds = [];
+	$.getJSON('maplayer.php', { layer: layer, bounds: map.getBounds().toBBoxString(), filter: getCurrentlySelectedFilters() })
 	.done( function(json) {
 		$.each(json, function(index, v) {
+			visibleMarkerIds.push(v.id);
 			//find if marker is already drawn
 			var markerfound = false;
 			for (var i = 0; i < markers[layer].length; i++) {
@@ -309,6 +297,16 @@ function loadMarkers(layer) {
 				markers[layer].push(marker);
 			}
 		});
+
+		//remove markers that should not be drawn (both out of bound and as a result of filtering)
+		for (var i = markers[layer].length - 1; i >= 0; i--) {
+			if (visibleMarkerIds.indexOf(markers[layer][i].options.x_id) === -1) {
+				markers[layer][i].remove();
+				markers[layer].splice(i, 1);
+				
+			}
+		}
+
 		loadLayerData(layer);
 	});
 }
@@ -344,7 +342,7 @@ function updateLayerData() {
 * Attach data values to the markers
 */
 function loadLayerData(layer) {
-	$.getJSON('layerdata.php', { layer: layer, bounds: map.getBounds().toBBoxString(), date: $('#map-date').val(), time: $('#map-time').val() })
+	$.getJSON('mapdata.php', { layer: layer, bounds: map.getBounds().toBBoxString(), date: $('#map-date').val(), time: $('#map-time').val(), filter: getCurrentlySelectedFilters() })
 	.done( function(json) {
 		//loop markers
 		if (markers.hasOwnProperty(layer)) {
@@ -398,7 +396,7 @@ function setMapCookie() {
 */
 function drawLayerGUI() {
 	$.each(maplayers, function(layer, options) {
-		$('#map-layers fieldset').append('<input type="checkbox" id="map-layer-' + layer + '"><label for="map-layer-' + layer + '">' + options.name + '</label><br>');
+		$('#map-layers').append('<input type="checkbox" id="map-layer-' + layer + '"><label for="map-layer-' + layer + '">' + options.name + '</label><br>');
 		if (typeof onloadCookie !== 'undefined') {
 			if (onloadCookie[3].indexOf(layer) >= 0) {
 				maplayers[layer].active = true;
@@ -421,6 +419,57 @@ function drawLayerGUI() {
 	});
 	updateMapLayers();
 	setMapCookie();
+}
+
+/*
+* Add or update filter options in GUI
+*/
+
+function updateFilterOptions() {
+	$.getJSON('mapfilters.php')
+	.done( function(json) {
+		//method
+		$.each(json.mtd, function(i, val) {
+			$('#filter-method').append('<input type="checkbox" name="' + val.name + '" id="filter-method-' + i + '"><label for="filter-method-' + i + '">' + val.desc + '</label><br>');
+			$('#filter-method-' + i).prop('checked', true).change(function() { updateMapLayers(); });
+		});
+		//organisations
+		$.each(json.org, function(i, val) {
+			$('#filter-org').append('<input type="checkbox" id="filter-org-' + val.id + '"><label for="filter-org-' + val.id + '">' + val.name + '</label><br>');
+			$('#filter-org-' + val.id).prop('checked', true).change(function() { updateMapLayers(); });
+		});
+		//datasets
+		$.each(json.set, function(i, val) {
+			$('#filter-set').append('<input type="checkbox" id="filter-set-' + val.id + '"><label for="filter-set-' + val.id + '" title="' + val.name + ' - ' + val.desc + '">' + val.prefix + '</label><br>');
+			$('#filter-set-' + val.id).prop('checked', true).change(function() { updateMapLayers(); });
+		});
+	});
+}
+
+/*
+* get currently selected filter options for passing to data requests
+*/
+function getCurrentlySelectedFilters() {
+	var filters = {mtd: [], org: [], set: []};
+	//get methods
+	$.each($('#filter-method input'), function() {
+		if ($(this).prop('checked')) {
+			filters.mtd.push($(this).prop('name'));
+		}
+	});
+	//get organisations
+	$.each($('#filter-org input'), function() {
+		if ($(this).prop('checked')) {
+			filters.org.push($(this).prop('id').substr(11));
+		}
+	});
+	//get datasets
+	$.each($('#filter-set input'), function() {
+		if ($(this).prop('checked')) {
+			filters.set.push($(this).prop('id').substr(11));
+		}
+	});
+	return JSON.stringify(filters);
 }
 
 /*
@@ -501,6 +550,8 @@ function openDataRequestPage() {
 * document.ready
 */
 $(function() {
+	//load filter options
+	updateFilterOptions();
 	onloadCookie = Cookies.getJSON('fietsviewer_map');
 	//get date from cookie
 	if ((typeof onloadCookie[4] !== 'undefined') && (typeof onloadCookie[5] !== 'undefined')) {
@@ -535,5 +586,10 @@ $(function() {
 	$('#menu-top-bar a[href="request.php"]').click( function (event) {
 		event.preventDefault();
 		openDataRequestPage();
+	});
+	//load accordion for side menu
+	$('#map-options-container').accordion({
+		heightStyle: 'content',
+		active: 2
 	});
 });

@@ -1,6 +1,6 @@
 {
     "name": "Plot",
-    "desc": "Maak een plot van de meetwaarden over de tijd",
+    "desc": "Een grafiek van de meetwaarden over de tijd",
     "layers": ["flow"],
     "periods": 1
 }
