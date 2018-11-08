@@ -111,7 +111,7 @@ function validRequestCompleted() {
     //check analysis type
     //TODO: workers inlezen uit worker-directory
     $type = NULL;
-    $valid_types = array ('flow' => array ('diff', 'trend', 'plot'));
+    $valid_types = array ('flow' => array ('diff', 'trend', 'plot', 'average'));
     $available_types = array_intersect_key($valid_types, $requestedMarkers);
     if (empty($available_types)) {
         $errors[] = 'layer';

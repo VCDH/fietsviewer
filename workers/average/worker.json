@@ -1,0 +1,6 @@
+{
+    "name": "Gemiddelde",
+    "desc": "Een grafiek met gemiddelde waarden per meetpunt over de opgegeven periode",
+    "layers": ["flow"],
+    "periods": 1
+}
