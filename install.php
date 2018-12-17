@@ -530,6 +530,9 @@ FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
+$qry[] = "ALTER TABLE `users` 
+ADD `default_dataset_id` INT UNSIGNED NULL";
+
 $qry[] = "CREATE TABLE `user_login_tokens` (
 `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 `user_id` INT UNSIGNED NOT NULL,

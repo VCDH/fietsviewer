@@ -38,14 +38,14 @@ function getuserdata($req = null) {
     }
     
     //match user info with db
-    $qry = "SELECT `users`.`id` AS `id`, `users`.`username` AS `username`, `users`.`email` AS `email`, `users`.`accesslevel` AS `accesslevel`, `user_login_tokens`.`token` AS `token`, `users`.`organisation_id` AS `organisation_id` FROM `user_login_tokens`
+    $qry = "SELECT `users`.`id` AS `id`, `users`.`username` AS `username`, `users`.`email` AS `email`, `users`.`accesslevel` AS `accesslevel`, `users`.`default_dataset_id` AS `default_dataset_id`, `user_login_tokens`.`token` AS `token`, `users`.`organisation_id` AS `organisation_id` FROM `user_login_tokens`
     LEFT JOIN `users`
     ON `user_login_tokens`.`user_id` = `users`.`id`
     WHERE `user_login_tokens`.`user_id` = '" . mysqli_real_escape_string($db['link'], $cookievalue[0]) . "'
     AND `user_login_tokens`.`token` = '" . mysqli_real_escape_string($db['link'], $cookievalue[1]) . "'";
     $res = mysqli_query($db['link'], $qry);
     if ($data = mysqli_fetch_assoc($res)) {
-        if (in_array($req, array('id', 'username', 'token', 'accesslevel', 'organisation_id', 'email'))) {
+        if (in_array($req, array('id', 'username', 'token', 'accesslevel', 'organisation_id', 'email', 'default_dataset_id'))) {
             return $data[$req];
         }
         else {
@@ -60,7 +60,7 @@ function getuserdata($req = null) {
 mixed logincheck( void )
 Return value:
 void if the user is logged in
-HTTP 403 status code and link to login page if not
+HTTP 401 status code and link to login page if not
 The function should be called before any HTML output (but degrades gracefully)
 */
 

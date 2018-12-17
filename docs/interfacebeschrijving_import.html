@@ -26,7 +26,7 @@
 
 
 <p class="Title">fietsv&#7433;ewer | interfacebeschrijving import</p>
-<p class="Subtitle">Documentversie 31-07-2018</p>
+<p class="Subtitle">Documentversie 17-12-2018</p>
 
 <p>Er kan op twee manieren nieuwe data worden toegevoegd aan
 fietsv&#7433;ewer: handmatig of geautomatiseerd. In beide gevallen dient de
@@ -394,51 +394,130 @@ aanleveren</h2>
 door het CSV-bestand als een HTTP-POST actie naar een specifieke URL te sturen.
 Deze URL is opvraagbaar via de webinterface van fietsv&#7433;ewer wanneer uw
 account geautoriseerd is voor het aanleveren van data. Deze URL is beveiligd
-met een gebruikersnaam en wachtwoord via Basic HTTP Authentication. Deze
-gegevens treft u bij de URL aan en wijken af van uw aanmeldgegevens.</p>
+met uw gebruikersnaam en wachtwoord via Basic HTTP Authentication.</p>
 
 <p>De POST actie wordt beantwoord met een HTTP statuscode en
-corresponderende plain-text body. De mogelijke antwoorden zijn in onderstaande
-tabel weergegeven.</p>
+JSON-respons. De JSON-respons bevat het object &quot;FietsViewerRespons&quot; met daarbinnen een aantal mogelijke naam-waardeparen. Deze zijn gegeven in onderstaande tabel:</p>
+
+<table>
+  <tr>
+   <th>element</th>
+   <th>verplicht</th>
+   <th>betekenis</th>
+  </tr>
+  <tr>
+   <td>statusCode</td>
+   <td>ja</td>
+   <td>Statuscode overeenkomstig de HTTP statuscode</td>
+  </tr>
+  <tr>
+   <td>statusText</td>
+   <td>ja</td>
+   <td>Tekstuele omschrijving van de HTTP statuscode</td>
+  </tr>
+  <tr>
+   <td>statusDesc</td>
+   <td>nee</td>
+   <td>Aanvullende omschrijving van de opgetreden fout, indien beschikbaar</td>
+  </tr>
+  <tr>
+   <td>processId</td>
+   <td>nee</td>
+   <td>Toegekend ID in de wachtrij voor verwerking. Enkel als de data succesvol is ontvangen (statusCode 202)</td>
+  </tr>
+  <tr>
+   <td>md5</td>
+   <td>nee</td>
+   <td>MD5-hash van de CSV-data. Enkel als de data succesvol is ontvangen (statusCode 202)</td>
+  </tr>
+ </table>
+
+
+<p>De mogelijke statuscodes die fietsv&#7433;ewer kan teruggeven zijn in onderstaande tabel weergegeven.</p>
 
 <table>
  <tr>
-  <th>HTTP STATUS CODE</th>
-  <th>PLAIN-TEXT BODY</th>
-  <th>BETEKENIS</th>
+  <th>statusCode</th>
+  <th>statusText</th>
+  <th>betekenis</th>
  </tr>
  <tr>
-  <td>200</td>
-  <td>ok</td>
-  <td>Bestand is correct ontvangen.</td>
+  <td>202</td>
+  <td>Accepted</td>
+  <td>Data is ontvangen en aan verwerkingswachtrij toegevoegd.</td>
  </tr>
  <tr>
   <td>400</td>
-  <td>bad_request</td>
-  <td>Verzoek is ontvangen maar CSV-bestand voldoet niet aan de
-  specificaties en kan niet verwerkt worden.</td>
+  <td>Bad Request</td>
+  <td>Er is geen geldige gegevensset geselecteerd waar geautomatiseerd aangeleverde gegevens naartoe geschreven moeten worden.</td>
+ </tr>
+ <tr>
+  <td>401</td>
+  <td>Unauthorized</td>
+  <td>Er is geen gebruikersnaam/wachtwoord opgegeven of deze zijn incorrect. Raadpleeg statusDesc voor aanvullende informatie.</td>
  </tr>
  <tr>
   <td>403</td>
-  <td>forbidden</td>
-  <td>Gebruikersnaam of wachtwoord zijn incorrect.</td>
+  <td>Forbidden</td>
+  <td>Het opgegeven gebruikersaccount heeft onvoldoende rechten om data toe te voegen aan fietsv&#7433;ewer.</td>
  </tr>
  <tr>
   <td>405</td>
-  <td>method_not_allowed</td>
+  <td>Method Not Allowed</td>
   <td>Wanneer een andere methode dan POST wordt gebruikt.</td>
  </tr>
  <tr>
+  <td>413</td>
+  <td>Payload Too Large</td>
+  <td>Aangeleverde data is groter dan toegestaan. Splits de data in meerdere sequentiele aanvragen.</td>
+ </tr>
+ <tr>
+  <td>415</td>
+  <td>Unsupported Media Type</td>
+  <td>Data is ontvangen, maar het aangeleverde format voldoet niet aan de interfacebeschrijving.</td>
+ </tr>
+ <tr>
+  <td>429</td>
+  <td>Too Many Requests</td>
+  <td>Er wordt geprobeerd om gelijktijdig meerdere databestanden via de API aan te leveren.</td>
+ </tr>
+ <tr>
+  <td>500</td>
+  <td>Internal Server Error</td>
+  <td>Er is een fout opgetreden aan de kant van de server, waardoor de data niet verwerkt kan worden. Indien mogelijk is statusDesc gevuld met aanvullende informatie.</td>
+ </tr>
+ <tr>
   <td>503</td>
-  <td>unavailable</td>
-  <td>Wanneer de uploaddienst onbeschikbaar is of wanneer geprobeerd wordt
-  meerdere CSV-bestanden gelijktijdig te POST-en vanuit hetzelfde account.</td>
+  <td>Service Unavailable</td>
+  <td>API is tijdelijk niet beschikbaar, bijvoorbeeld omdat deze overbelast is of in onderhoud is.</td>
  </tr>
 </table>
 
 <p>Het is niet mogelijk om gelijktijdig meerdere CSV-bestanden
 aan te leveren. Wanneer data in meerdere bestanden aangeleverd moet worden, is
 het noodzakelijk deze sequentieel af te handelen.</p>
+
+<p>Een voorbeeld van een respons voor succesvol aangeleverde data:</p>
+<pre>
+{
+  "FietsViewerRespons": {
+    "statusCode": 202,
+    "statusText": "Accepted",
+    "processId": 42,
+    "md5": "18ac2fc2bdf10b50b0ddb7abdae1f034"
+  }
+}
+</pre>
+<p>Een voorbeeld van een respons wanneer een foutieve methode wordt gebruikt:</p>
+<pre>
+{
+  "FietsViewerRespons": {
+    "statusCode": 405,
+    "statusText": "Method Not Allowed",
+    "statusDesc": "Only POST requests allowed"
+  }
+}
+</pre>
 
 <p class="FootnoteText">
 <span class="FootnoteReference"><a href="#_ftnref1" name="_ftn1" title="">[1]</a></span>

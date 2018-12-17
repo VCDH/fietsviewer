@@ -288,7 +288,38 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('da
         }
     }
 }
+//save default dataset
+if (($_GET['p'] == 'api_dataset') && accesslevelcheck('datasets')) {
+    $data = array();
+    $data['dataset_id'] = getuserdata('default_dataset_id');
+    //process post
+    if (!empty($_POST)) {
+        $store_success = TRUE;
+        //overload post
+        $data['dataset_id'] = $_POST['dataset_id'];
+        //check dataset id
+        if ($data['dataset_id'] !== 'NULL') {
+            $qry = "SELECT `id` FROM `datasets` 
+            WHERE `id` = '" . mysqli_real_escape_string($db['link'], $data['dataset_id']) . "' 
+            AND `organisation_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('organisation_id')) . "' 
+            LIMIT 1";
+            $res = mysqli_query($db['link'], $qry);
+            if (!mysqli_num_rows($res)) {
+                $store_success = FALSE;
+                $messages[] = 'invalid';
+            }
+        }
 
+        //store in database
+        if ($store_success === TRUE) {
+            $qry = "UPDATE `users` 
+            SET `default_dataset_id` = " . ( ($data['dataset_id'] === 'NULL') ? 'NULL' : '\'' . mysqli_real_escape_string($db['link'], $data['dataset_id']) . '\'' ) . "
+            WHERE `id` = '" . mysqli_real_escape_string($db['link'], getuserdata('id')) . "' 
+            AND `organisation_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('organisation_id')) . "'";
+            $store_success = mysqli_query($db['link'], $qry);
+        }
+    }
+}
 
 
 ?>
@@ -488,7 +519,7 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('da
         }
     }
 
-    //edit users
+    //edit datasets
     elseif (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && ($store_success !== TRUE)) {
         if (is_numeric($_GET['id'])) {
             echo '<h1>Gegevensset bewerken</h1>';
@@ -521,6 +552,10 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('da
         echo '<h1>Gegevenssets</h1>';
         echo '<p>Iedere gegevensset moet apart worden aangemeld. Hiermee is data terug te leiden naar een specifieke bron en kan hierop gefilterd worden.</p>';
         echo '<a href="?p=datasets&amp;a=edit">Gegevensset aanmelden</a>';
+        //message
+        if ($store_success === TRUE) {
+            echo '<p class="success">Wijziging doorgevoerd.</p>';
+        }
         //list organisations in table
         $qry = "SELECT `datasets`.`id`, `prefix`, `organisations`.`name`, `datasets`.`name`, `datasets`.`description` FROM `datasets` 
         LEFT JOIN  `organisations`
@@ -529,7 +564,7 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('da
         $res = mysqli_query($db['link'], $qry);
         if (mysqli_num_rows($res)) {
             echo '<table>';
-            echo '<tr><th>Organisatie</th><th>Prefix</th><th>Naam</th><th>Omschrijving</th><th></th><th></th><th></th></tr>';
+            echo '<tr><th>Organisatie</th><th>Prefix</th><th>Naam</th><th>Omschrijving</th><th>API</th><th></th><th></th><th></th></tr>';
             while ($row = mysqli_fetch_row($res)) {
                 echo '<tr><td>';
                 echo htmlspecialchars($row[2]);
@@ -540,6 +575,8 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('da
                 echo '</td><td>';
                 echo htmlspecialchars($row[4]);
                 echo '</td><td>';
+                echo (($row[0] == getuserdata('default_dataset_id')) ? 'Ja' : '');
+                echo '</td><td>';
                 echo '<a href="?p=datasets&amp;a=edit&amp;id=' . $row[0] . '">Bewerken</a>';
                 echo '</td><td>';
                 //TODO echo '<a href="?p=datasets&amp;a=delete&amp;id=' . $row[0] . '">Verwijderen</a>';
@@ -548,11 +585,69 @@ if (($_GET['p'] == 'datasets') && ($_GET['a'] == 'edit') && accesslevelcheck('da
                 echo '</td></tr>';
             }
             echo '</table>';
+
+            echo '<h2>API</h2>';
+            echo '<p>Data kan geautomatiseerd worden aangeleverd via de API. Zie de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a> voor meer informatie. Er moet een gegevensset gekozen worden waarin geautomatiseerd aangeleverde data wordt opgeslagen. Deze instelling is gekoppeld aan het gebruikersaccount. Wijzigingen zijn enkel van toepassing op nieuw aan te leveren data.</p>';
+            echo '<p><b>Gegevensset voor API toegang:</b> ';
+            //get selected dataset for API access
+            $qry = "SELECT `id`, `name` FROM `datasets`
+            WHERE `organisation_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('organisation_id')) . "' 
+            AND `id` = '" . mysqli_real_escape_string($db['link'], getuserdata('default_dataset_id')) . "'";
+            $res = mysqli_query($db['link'], $qry);
+            if (!mysqli_num_rows($res)) {
+                echo '(niet geselecteerd)';
+            }
+            else {
+                $data = mysqli_fetch_assoc($res);
+                echo htmlspecialchars($data['name']);
+            }
+            echo ' <a href="admin.php?p=api_dataset">wijzigen</a></p>';
         }
         else {
             echo '<p class="info">Er zijn geen prefixen.</p>';
         }
     }
+
+    //edit api dataset
+    elseif (($_GET['p'] == 'api_dataset') && ($store_success !== TRUE)) {
+        echo '<h1>API gegevensset instellen</h1>';
+        //messages
+        if (in_array('invalid', $messages)) {
+            echo '<p class="warning">Geen geldige gegevensset geselecteerd.</p>';
+        }
+        ?>
+        <form method="POST" enctype="multipart/form-data">
+        
+        <?php
+        echo '<p><b>Gegevensset voor API:</b> <select name="dataset_id">';
+        echo '<option value="NULL">(niet ingesteld)</option>';
+        //get available datasets
+        $qry = "SELECT `id`, `name` FROM `datasets`
+        WHERE `organisation_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('organisation_id')) . "'";
+        $res = mysqli_query($db['link'], $qry);
+        while ($row = mysqli_fetch_row($res)) {
+            echo '<option value="' . $row[0] . '"';
+            if ($data['dataset_id'] == $row[0]) {
+                echo ' selected';
+            }
+            echo '>';
+            echo htmlspecialchars($row[1]);
+            echo '</option>';
+        }
+        echo '</select></p>';
+        ?>
+        <p><input type="submit" value="Opslaan"> <a href="?p=datasets">Annuleren</a></p>
+        </form>
+        <?php     
+    }
+
+    //edit api dataset
+    elseif (($_GET['p'] == 'api_dataset') && ($store_success === TRUE)) {
+        echo '<h1>API gegevensset instellen</h1>';
+        echo '<p class="success">Wijziging doorgevoerd.</p>';
+        echo '<a href="?p=datasets">&laquo; terug</a>';
+    }
+
     //main admin menu
     else {
         echo '<h1>admin</h1>';

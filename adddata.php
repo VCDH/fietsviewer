@@ -23,6 +23,7 @@ accesscheck('adddata');
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 require_once 'functions/csv_functions.php';
+require_once 'functions/check_format.php';
 
 /*
 * function to check uploaded file for errors
@@ -69,164 +70,6 @@ function check_uploaded_file ($file, $maxsize = 0, $allowed = array('csv')) {
             }
         }
     } 
-}
-
-/*
-* function to check the uploaded file for file consistency with the data format
-* only header row and first row are checked
-* returns (bool) FALSE if the file is wrong or (str) $format if the file is correct
-*/
-function check_data_format($file) {
-    //open file
-    $handle = fopen($file, 'rb');
-    if ($handle == FALSE) {
-        return FALSE;
-    }
-    //get header row
-    $line = fgets($handle);
-    if ($line == FALSE) {
-        return FALSE;
-    }
-    //detect delimiter
-    $delimiter = csv_delimiter_from_string($line);
-    if ($delimiter == FALSE) {
-        return FALSE;
-    }
-    //get column names
-    $colnames = str_getcsv($line, $delimiter);
-    //check data format
-    $format = NULL;
-    $format_check = check_format_dpf_flow($colnames);
-    if ($format_check === TRUE) {
-        $format = 'dpf-flow';
-    }
-    $format_check = check_format_dpf_rln($colnames);
-    if ($format_check === TRUE) {
-        $format = 'dpf-rln';
-    }
-    $format_check = check_format_dpf_waittime($colnames);
-    if ($format_check === TRUE) {
-        $format = 'dpf-waittime';
-    }
-    if ($format === NULL) {
-        return FALSE;
-    }
-    //check if there is a data row
-    $row1 = fgetcsv($handle, null, $delimiter);
-    if ($row1 == FALSE) {
-        return FALSE;
-    }
-    return $format;
-}
-
-/*
-* function to check header row for "data platform fiets" format
-* returns FALSE if it doesn't match or TRUE if mandatory columns are available
-*/
-function check_format_dpf_flow($arr_colnames) {
-    $mandatory_cols = array(
-        array('locatie-id', 'location-id', 'id', 'nr'),
-        array('lat'),
-        array('lon'),
-        array('richting', 'heading', 'direction'),
-        array('methode', 'method'),
-        array('periode-van', 'period-from'),
-        array('periode-tot', 'period-to'),
-        array('tijd-van', 'time-from'),
-        array('tijd-tot', 'time-to'),
-        array('fiets', 'bicycle')
-    );
-    //set $arr_colnames to lowercase
-    $arr_colnames = array_map('strtolower', $arr_colnames);
-    //check for each mandatory col
-    foreach ($mandatory_cols as $cols) {
-        //assume false
-        $assume = FALSE;
-        //check for presence of field
-        foreach ($cols as $col) {
-            $key = array_search($col, $arr_colnames);
-            if ($key !== FALSE) {
-                $assume = TRUE;
-                break;
-            }
-        }
-        //if not present, break and return FALSE
-        if ($assume == FALSE) {
-            return FALSE;
-        }
-    }
-    //all mandatory columns present
-    return TRUE;
-}
-function check_format_dpf_rln($arr_colnames) {
-    $mandatory_cols = array(
-        array('locatie-id', 'location-id', 'id', 'nr'),
-        array('lat'),
-        array('lon'),
-        array('richting', 'heading', 'direction'),
-        array('methode', 'method'),
-        array('periode-van', 'period-from'),
-        array('periode-tot', 'period-to'),
-        array('tijd-van', 'time-from'),
-        array('tijd-tot', 'time-to'),
-        array('rood-licht-negatie', 'red-light-negation')
-    );
-    //set $arr_colnames to lowercase
-    $arr_colnames = array_map('strtolower', $arr_colnames);
-    //check for each mandatory col
-    foreach ($mandatory_cols as $cols) {
-        //assume false
-        $assume = FALSE;
-        //check for presence of field
-        foreach ($cols as $col) {
-            $key = array_search($col, $arr_colnames);
-            if ($key !== FALSE) {
-                $assume = TRUE;
-                break;
-            }
-        }
-        //if not present, break and return FALSE
-        if ($assume == FALSE) {
-            return FALSE;
-        }
-    }
-    //all mandatory columns present
-    return TRUE;
-}
-function check_format_dpf_waittime($arr_colnames) {
-    $mandatory_cols = array(
-        array('locatie-id', 'location-id', 'id', 'nr'),
-        array('lat'),
-        array('lon'),
-        array('richting', 'heading', 'direction'),
-        array('methode', 'method'),
-        array('periode-van', 'period-from'),
-        array('periode-tot', 'period-to'),
-        array('tijd-van', 'time-from'),
-        array('tijd-tot', 'time-to'),
-        array('wachttijd', 'wait-time')
-    );
-    //set $arr_colnames to lowercase
-    $arr_colnames = array_map('strtolower', $arr_colnames);
-    //check for each mandatory col
-    foreach ($mandatory_cols as $cols) {
-        //assume false
-        $assume = FALSE;
-        //check for presence of field
-        foreach ($cols as $col) {
-            $key = array_search($col, $arr_colnames);
-            if ($key !== FALSE) {
-                $assume = TRUE;
-                break;
-            }
-        }
-        //if not present, break and return FALSE
-        if ($assume == FALSE) {
-            return FALSE;
-        }
-    }
-    //all mandatory columns present
-    return TRUE;
 }
 
 /*
@@ -314,8 +157,6 @@ if (!empty($_FILES)) {
 	<?php include('menu.inc.php'); ?>
 
     <h1>data aan gegevensset toevoegen</h1>
-    <!--<p>Nieuwe databestanden kunnen handmatig of geautomatiseerd aan een gegevensset in fietsv&#7433;ewer worden toegevoegd. Zie de helptekst voor meer informatie over ondersteunde bestandsindelingen en de API voor geautomatiseerd aanleveren.</p>-->
-
     
     <?php
     //get available datasets
@@ -336,7 +177,7 @@ if (!empty($_FILES)) {
     <form method="POST" enctype="multipart/form-data">
     
     <?php
-        echo '<p><b>Gegevensset</b> <select name="dataset_id">';
+        echo '<p><b>Gegevensset:</b> <select name="dataset_id">';
         while ($row = mysqli_fetch_row($res)) {
             echo '<option value="' . $row[0] . '"';
             if (($_POST['dataset_id'] == $row[0]) || (empty($_POST) && ($_GET['dataset_id'] == $row[0]))) {
@@ -358,16 +199,7 @@ if (!empty($_FILES)) {
         <p><b>Bestand:</b> <input type="file" name="file"></p>
         <p><input type="submit" value="Upload"></p>
     </form>
-    <!--
-    <h2>geautomatiseerde upload</h2>
-    <p>Via een API kunnen data ook automatisch worden aangeboden. Voor meer informatie zie de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>.</p>
-    <table>
-        <tr><th>URL</th><td><?php echo htmlspecialchars(substr($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], '/'))) . '/api/add'; ?></td></tr>
-        <tr><th>gebruikersnaam</th><td><?php echo htmlspecialchars(getuserdata('username')); ?></td></tr>
-        <tr><th>wachtwoord</th><td>(bekend bij gebruiker)</td></tr>
-        <tr><th>maximale POST grootte</th><td><?php echo ini_get('post_max_size'); ?></td></tr>
-    </table>
-    -->
+    
     <?php
     }
     ?>
@@ -406,6 +238,7 @@ if (!empty($_FILES)) {
         echo '<p>Er is geen databestand in de wachtrij.</p>';
     }
     ?>
+    <p><a href="?">vernieuwen</a></p>
 
     <h2>verwerkt</h2>
     <?php
@@ -457,8 +290,35 @@ if (!empty($_FILES)) {
     else {
         echo '<p>Er zijn nog geen databestanden verwerkt.</p>';
     }
+
     ?>
-        
+
+    <h2>geautomatiseerde upload</h2>
+    <p>Via de API kunnen data ook automatisch worden aangeboden. Voor meer informatie zie de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>.</p>
+
+    <?php
+    //get default dataset for API access
+    $qry = "SELECT `id`, `name` FROM `datasets`
+    WHERE `organisation_id` = '" . mysqli_real_escape_string($db['link'], getuserdata('organisation_id')) . "' 
+    AND `id` = '" . mysqli_real_escape_string($db['link'], getuserdata('default_dataset_id')) . "'";
+    $res = mysqli_query($db['link'], $qry);
+    if (!mysqli_num_rows($res)) {
+        echo '<p>Er is geen gegevensset geselecteerd voor API toegang. <a href="admin.php?p=datasets">Wijs eerst een gegevensset toe</a>.</p>';
+    }
+    else {
+        $data = mysqli_fetch_assoc($res);
+        ?>
+        <table>
+            <tr><th>URL</th><td><?php echo htmlspecialchars(substr($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], '/'))) . '/api/add'; ?></td></tr>
+            <tr><th>gebruikersnaam</th><td><?php echo htmlspecialchars(getuserdata('username')); ?></td></tr>
+            <tr><th>wachtwoord</th><td>(bekend bij gebruiker)</td></tr>
+            <tr><th>maximale POST grootte</th><td><?php echo ini_get('post_max_size'); ?></td></tr>
+            <tr><th>gegevensset</th><td><?php echo htmlspecialchars($data['name']); ?> <a href="admin.php?p=datasets">wijzigen</a></td></tr>
+        </table>
+        <p><b>Gegevensset</b>: via de API aangeleverde data worden opgeslagen in de gegevensset <i><?php echo htmlspecialchars($data['name']); ?></i>.</p>
+        <?php
+    }
+    ?>
     
 </body>
 </html>

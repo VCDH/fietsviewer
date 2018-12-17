@@ -543,7 +543,7 @@ if ($restart == TRUE) {
     //script cannot run in loop because of functions that may need to be redefined, so it must me restarted for each job in the queue
     require_once 'functions/execInBackground.php';
     sleep(2); //to allow for disk IO
-    execInBackground('php process_result.php');
+    execInBackground('php process_queue.php');
 }
 exit;
 ?>
