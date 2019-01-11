@@ -25,6 +25,22 @@ $datetime = date_create($_GET['date'] . ' ' . $_GET['time'], timezone_open('Euro
 date_timezone_set($datetime, timezone_open('UTC'));
 $datetime = date_format($datetime, 'Y-m-d H:i:s');
 
+/*
+* function to convert a number to a display format or text if there is nothing to display
+*/
+function echo_number($val, $sign) {
+	if ($val == null) {
+		$val = 'geen data voor tijdstip';
+	}
+	else {
+		if (!is_int($val)) {
+			$val = number_format($val, 2, ',', '');
+		}
+		$val = $val . ' ' . $sign;
+	}
+	return $val;
+}
+
 if ($_GET['layer'] == 'flow') {
 	$qry = "SELECT `mst_flow`.`id` AS `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `flow_pos`, `flow_neg`, `t1`.`quality` AS `quality` 
 	FROM `mst_flow`
@@ -48,13 +64,13 @@ if ($_GET['layer'] == 'flow') {
 		<tr><td>Co&ouml;rdinaten:</td><td>' . $data['lat'] . ',' . $data['lon'] . '</td></tr>
 		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
 		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
-		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>' .
+		<tr><td>Kwaliteit:</td><td>' . echo_number($data['quality'], '%') . '</td></tr>' .
 		( ($data['flow_neg'] != null) ?
-		'<tr><td>Intensiteit positief:</td><td>' . $data['flow_pos'] . (($data['flow_pos'] != null) ? ' per uur' : '') . '</td></tr>
-		<tr><td>Intensiteit negatief:</td><td>' . $data['flow_neg'] . ' per uur</td></tr>'
+		'<tr><td>Intensiteit positief:</td><td>' . echo_number($data['flow_pos'], 'per uur') . '</td></tr>
+		<tr><td>Intensiteit negatief:</td><td>' . echo_number($data['flow_neg'], 'per uur') . '</td></tr>'
 		: ''
 		) .
-		'<tr><td>Intensiteit totaal:</td><td>' . (($data['flow_pos'] == null) ? 'geen data voor tijdstip' : ($data['flow_pos'] + $data['flow_neg']) . ' per uur') . '</td></tr>
+		'<tr><td>Intensiteit totaal:</td><td>' . echo_number($data['flow_pos'] + $data['flow_neg'], 'per uur') . '</td></tr>
 		</table>';
 	}
 }
@@ -81,8 +97,8 @@ elseif ($_GET['layer'] == 'rln') {
 		<tr><td>Co&ouml;rdinaten:</td><td>' . $data['lat'] . ',' . $data['lon'] . '</td></tr>
 		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
 		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
-		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>
-		<tr><td>Rood Licht Negatie:</td><td>' . (($data['red_light_negation'] == null) ? 'geen data voor tijdstip' : ($data['red_light_negation']) . ' per uur') . '</td></tr>
+		<tr><td>Kwaliteit:</td><td>' . echo_number($data['quality'], '%') . '</td></tr>
+		<tr><td>Rood Licht Negatie:</td><td>' . echo_number($data['red_light_negation'], 'per uur') . '</td></tr>
 		</table>';
 	}
 }
@@ -109,8 +125,8 @@ elseif ($_GET['layer'] == 'waittime') {
 		<tr><td>Co&ouml;rdinaten:</td><td>' . $data['lat'] . ',' . $data['lon'] . '</td></tr>
 		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
 		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
-		<tr><td>Kwaliteit:</td><td>' . $data['quality'] . '%</td></tr>
-		<tr><td>Gemiddelde wachttijd:</td><td>' . (($data['wait-time'] == null) ? 'geen data voor tijdstip' : ($data['red_light_negation']) . ' seconden per uur') . '</td></tr>
+		<tr><td>Kwaliteit:</td><td>' . echo_number($data['quality'], '%') . '</td></tr>
+		<tr><td>Gemiddelde wachttijd:</td><td>' . echo_number($data['wait-time'], 'seconden') . '</td></tr>
 		</table>';
 	}
 }

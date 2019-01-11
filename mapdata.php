@@ -103,13 +103,13 @@ elseif ($_GET['layer'] == 'waittime') {
         if (($data['wait-time']) > 0) {
             $color = 1;
         }
-        if (($data['wait-time']) > 60) {
+        if (($data['wait-time']) > 15) {
             $color = 2;
         }
-        if (($data['wait-time']) > 90) {
+        if (($data['wait-time']) > 30) {
             $color = 3;
         }
-        if (($data['wait-time']) > 120) {
+        if (($data['wait-time']) > 45) {
             $color = 4;
         }
         //add to output
