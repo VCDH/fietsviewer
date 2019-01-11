@@ -206,7 +206,7 @@ if (!empty($_FILES)) {
     
     <h2>wachtrij</h2>
     <?php
-    $qry = "SELECT `date_create`, `filename`, `datatype`, `datasets`.`name`  
+    $qry = "SELECT `date_create`, `filename`, `datatype`, `datasets`.`name`, `upload_queue`.`id` AS `id`  
     FROM `upload_queue`
     LEFT JOIN `datasets`
     ON `upload_queue`.`dataset_id` = `datasets`.`id`
@@ -223,6 +223,8 @@ if (!empty($_FILES)) {
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
+            echo $row[4];
+            echo '</td><td>';
             echo $row[0];
             echo '</td><td>';
             echo htmlspecialchars($row[1]);
@@ -242,7 +244,7 @@ if (!empty($_FILES)) {
 
     <h2>verwerkt</h2>
     <?php
-    $qry = "SELECT `date_lastchange`, `filename`, `process_error`, `process_time`, `date_create`, `datatype`, `datasets`.`name` 
+    $qry = "SELECT `date_lastchange`, `filename`, `process_error`, `process_time`, `date_create`, `datatype`, `datasets`.`name`, `upload_queue`.`id` AS `id` 
     FROM `upload_queue`
     LEFT JOIN `datasets`
     ON `upload_queue`.`dataset_id` = `datasets`.`id`
@@ -258,10 +260,12 @@ if (!empty($_FILES)) {
     if (mysqli_num_rows($res)) {
         echo '<p>Onderstaande databestanden zijn recent verwerkt. Alleen de 16 meest recente toevoegingen worden weergegeven.</p>';
         echo '<table><thead>';
-        echo '<tr><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Gegevensset</th><th>Type</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
+        echo '<tr><th>ID</th><th>Toegevoegd</th><th>Verwerkt</th><th>Bestand</th><th>Gegevensset</th><th>Type</th><th>Geslaagd</th><th>Verwerkingstijd</th><th>Foutmeldingen</th></tr>';
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
+            echo $row[7];
+            echo '</td><td>';
             echo $row[4];
             echo '</td><td>';
             echo $row[0];
