@@ -317,14 +317,14 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             }
         }
         elseif ($format == 'dpf-waittime') {
-            //red-light-negation
+            //wait-time
             if (!is_numeric($line[$cols['data']['wait-time']])) {
                 $errors[] = 'Invalid data value on line ' . $i;
                 continue;
             }
-            //normalize red-light-negation
+            //normalize wait-time
             if (($line[$cols['data']['per']] == 0) || ($line[$cols['data']['per']] == 2)) {
-                $line[$cols['data']['wait-time']] = $line[$cols['data']['wait-time']] * 3600 / $data_period;
+                $line[$cols['data']['wait-time']] = $line[$cols['data']['wait-time']];
             }
         }
         
