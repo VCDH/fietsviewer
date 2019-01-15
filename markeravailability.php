@@ -68,7 +68,7 @@ while ($row = mysqli_fetch_row($res)) {
     //calculate number of seconds in this month
     $seconds_total = strtotime($year_next . '-' . str_pad($month_next, 2, '0', STR_PAD_LEFT) . '-01') - strtotime($year_this . '-' . str_pad($month_this, 2, '0', STR_PAD_LEFT) . '-01');
 
-    $datasets[0]['data'][] = round($row[0] / $seconds_total * 100);
+    $datasets[0]['data'][] = round($row[0] / $seconds_total * 100, 1);
 }
 $chartjs['datasets'] = array_values($datasets);
 

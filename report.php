@@ -129,8 +129,8 @@ $aggregateoptions = array (
                         echo 'Vergeleken met basisperiode:';
                     }
                     echo '</td><td>';
-                    echo 'Datum: van ' . $request_details['period'][$i]['date-start'] . ' tot ' . $request_details['period'][$i]['date-end'] . '<br>';
-                    echo 'Tijd dagelijks: van ' . $request_details['period'][$i]['time-start'] . ' tot ' . $request_details['period'][$i]['time-end'] . '<br>';
+                    echo 'Datum: van ' . $request_details['period'][$i]['date-start'] . ' t/m ' . $request_details['period'][$i]['date-end'] . '<br>';
+                    echo 'Tijd dagelijks: van ' . $request_details['period'][$i]['time-start'] . ' t/m ' . $request_details['period'][$i]['time-end'] . '<br>';
                     $daysofweek = array_map('named_dayofweek_by_mysql_index', $request_details['period'][$i]['daysofweek']);
                     echo 'Dagen van de week: '. join(', ', $daysofweek);
                     echo '</<td></tr>';

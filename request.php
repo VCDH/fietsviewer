@@ -502,7 +502,7 @@ if ($requestcompleted === TRUE) {
                     <td><input type="time" name="time-start<?php echo $i; ?>" id="form-time-start<?php echo $i; ?>" value="<?php echo $value['period'][$i]['time-start']; ?>" autocomplete="off" required></td>
                 </tr>
                 <tr>
-                    <td><label for="form-time-end<?php echo $i; ?>">tot:</label></td>
+                    <td><label for="form-time-end<?php echo $i; ?>">t/m:</label></td>
                     <td><input type="time" name="time-end<?php echo $i; ?>" id="form-time-end<?php echo $i; ?>" value="<?php echo $value['period'][$i]['time-end']; ?>" autocomplete="off" required></td>
                 </tr>
             </table>
