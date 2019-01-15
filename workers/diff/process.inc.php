@@ -24,6 +24,7 @@
 function worker_process($request_details) {
     global $db;
     require(dirname(__FILE__).'/../../dbconnect.inc.php');
+    require(dirname(__FILE__).'/../../functions/label_functions.php');
 
     $request_details = json_decode($request_details, TRUE);
     //check markers
@@ -139,6 +140,18 @@ function worker_process($request_details) {
         $datasets[1]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
     }
     $chartjs['datasets'] = array_values($datasets);
+    //convert timestamps to human readable
+    for ($i = 0; $i < count($chartjs['labels']); $i++) {
+        switch ($request_details['aggregate']) {
+            //case 'h14' : $timestep = 15 * 60; break;
+            //case 'h12' : $timestep = 30 * 60; break;
+            case 'd' : $chartjs['labels'][$i] = named_week_by_mysql_index($chartjs['labels'][$i]); break;
+            case 'm' : $chartjs['labels'][$i] = named_month_by_mysql_index($chartjs['labels'][$i]); break;
+            case 'q' : $chartjs['labels'][$i] = 'Q' . $chartjs['labels'][$i]; break;
+            case 'h' : $chartjs['labels'][$i] = $chartjs['labels'][$i] . ':00'; break;
+            default: break;
+        }
+    }
 
     return json_encode($chartjs);
 }

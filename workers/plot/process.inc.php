@@ -24,6 +24,7 @@
 function worker_process($request_details) {
     global $db;
     require(dirname(__FILE__).'/../../dbconnect.inc.php');
+    require(dirname(__FILE__).'/../../functions/label_functions.php');
 
     $request_details = json_decode($request_details, TRUE);
     //check markers
@@ -83,10 +84,11 @@ function worker_process($request_details) {
         default: $groupby = 'DATE(`datetime_from`), HOUR(`datetime_from`)'; //hour
     }
     
+    $locations_with_negative_flow = array();
     foreach ($layers as $layer => $ids) {
         if ($layer == 'flow') {
+            $locations_with_negative_flow[$layer] = array();
             foreach ($ids as $id) {
-                
                 $qry = "SELECT `id`, SUM(`flow_pos`), SUM(`flow_neg`), " . $groupby . " FROM `data_flow`
                 WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-end']) . "'
                 AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-end']))) . "'
@@ -103,6 +105,10 @@ function worker_process($request_details) {
                         case 'm' : 
                         case 'q' : $bin = $row[3].str_pad($row[4], 2, '0', STR_PAD_LEFT); break;
                         default: $bin = $row[3]; //day, week, year
+                    }
+                    //keep track if flow_neg has to be shown in graph for this layer/id
+                    if (($row[2] != null) && (!in_array($id, $locations_with_negative_flow[$layer]))) {
+                        $locations_with_negative_flow[$layer][] = $id;
                     }
                     //add result to correct bin
                     $result[$bin][$layer][$id] = array(
@@ -131,18 +137,35 @@ function worker_process($request_details) {
             'data' => array(),
             'label' => $row[0].' (heen)'
         );
-        $datasets[$id.'neg'] = array(
-            'data' => array(),
-            'label' => $row[0].' (terug)'
-        );
+        if (in_array($id, $locations_with_negative_flow['flow'])) {
+            $datasets[$id.'neg'] = array(
+                'data' => array(),
+                'label' => $row[0].' (terug)'
+            );
+        }
         foreach ($chartjs['labels'] as $bin) {
             $data_this_pos = $result[$bin]['flow'][$id]['flow_pos'];
             $datasets[$id.'pos']['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
-            $data_this_neg = $result[$bin]['flow'][$id]['flow_neg'];
-            $datasets[$id.'neg']['data'][] = (empty($data_this_neg) ? null : $data_this_neg);
+            if (in_array($id, $locations_with_negative_flow['flow'])) {
+                $data_this_neg = $result[$bin]['flow'][$id]['flow_neg'];
+                $datasets[$id.'neg']['data'][] = (empty($data_this_neg) ? null : $data_this_neg);
+            }
         }
     }
     $chartjs['datasets'] = array_values($datasets);
+    //convert timestamps to human readable
+    for ($i = 0; $i < count($chartjs['labels']); $i++) {
+        switch ($request_details['aggregate']) {
+            //case 'h14' : $timestep = 15 * 60; break;
+            //case 'h12' : $timestep = 30 * 60; break;
+            case 'd' : $chartjs['labels'][$i] = substr($chartjs['labels'][$i], 8, 2) . '-' . substr($chartjs['labels'][$i], 5, 2) . '-' . substr($chartjs['labels'][$i], 0, 4); break;
+            case 'm' : $chartjs['labels'][$i] = named_month_by_mysql_index(substr($chartjs['labels'][$i], 4)) . ' ' . substr($chartjs['labels'][$i], 0, 4); break;
+            case 'q' : $chartjs['labels'][$i] = 'Q' . substr($chartjs['labels'][$i], 4) . ' ' . substr($chartjs['labels'][$i], 0, 4); break;
+            case 'w' : $chartjs['labels'][$i] = 'w' . substr($chartjs['labels'][$i], 4) . ' ' . substr($chartjs['labels'][$i], 0, 4); break;
+            case 'h' : $chartjs['labels'][$i] = substr($chartjs['labels'][$i], 0, 10) . ' ' . substr($chartjs['labels'][$i], 10)  . ':00'; break;
+            default: break;
+        }
+    }
 
     return json_encode($chartjs);
 }

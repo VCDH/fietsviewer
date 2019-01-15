@@ -24,6 +24,7 @@
 function worker_process($request_details) {
     global $db;
     require(dirname(__FILE__).'/../../dbconnect.inc.php');
+    require(dirname(__FILE__).'/../../functions/label_functions.php');
 
     $request_details = json_decode($request_details, TRUE);
     //check markers
@@ -50,25 +51,9 @@ function worker_process($request_details) {
             }
         }
     }
-    //build time bins
-    $result = array();
-    /*
-    $time_start = strtotime($request_details['period']['1']['date-start'] . ' ' . $request_details['period']['1']['time-start']);
-    $time_end = strtotime($request_details['period']['1']['date-end'] . ' ' . $request_details['period']['1']['time-end']);
-    switch ($request_details['aggregate']) {
-        case 'h14' : $timestep = 15 * 60; break;
-        case 'h12' : $timestep = 30 * 60; break;
-        case 'h' : $timestep = 60 * 60; break;
-        case 'd' : $timestep = 24 * 60 * 60; break;
-        case 'w' : $timestep = 7 * 24 * 60 * 60; break;
-        case 'm' : $timestep = 15 * 60; break;
-        case 'q' : $timestep = 15 * 60; break;
-        case 'y' : $timestep = 15 * 60; break;
-    }
-    for ($t = $time_start; $t < $time_end; $t += $timestep) {
 
-    }
-    */
+    //build result
+    $result = array();
 
     //build query
     $groupby = '';
@@ -83,8 +68,10 @@ function worker_process($request_details) {
         default: $groupby = 'HOUR(`datetime_from`)'; //hour
     }
     
+    $locations_with_negative_flow = array();
     foreach ($layers as $layer => $ids) {
         if ($layer == 'flow') {
+            $locations_with_negative_flow[$layer] = array();
             foreach ($ids as $id) {
                 
                 $qry = "SELECT `id`, AVG(`flow_pos`), AVG(`flow_neg`), " . $groupby . " FROM `data_flow`
@@ -97,6 +84,10 @@ function worker_process($request_details) {
                 while ($row = mysqli_fetch_row($res)) {
                     //decide bin or bins for time period
                     $bin = $row[3]; //always
+                    //keep track if flow_neg has to be shown in graph for this layer/id
+                    if (($row[2] != null) && (!in_array($id, $locations_with_negative_flow[$layer]))) {
+                        $locations_with_negative_flow[$layer][] = $id;
+                    }
                     //add result to correct bin
                     $result[$bin][$layer][$id] = array(
                         'flow_pos' => (int) $row[1],
@@ -124,18 +115,34 @@ function worker_process($request_details) {
             'data' => array(),
             'label' => $row[0].' (heen)'
         );
-        $datasets[$id.'neg'] = array(
-            'data' => array(),
-            'label' => $row[0].' (terug)'
-        );
+        if (in_array($id, $locations_with_negative_flow['flow'])) {
+            $datasets[$id.'neg'] = array(
+                'data' => array(),
+                'label' => $row[0].' (terug)'
+            );
+        }
         foreach ($chartjs['labels'] as $bin) {
             $data_this_pos = $result[$bin]['flow'][$id]['flow_pos'];
             $datasets[$id.'pos']['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
-            $data_this_neg = $result[$bin]['flow'][$id]['flow_neg'];
-            $datasets[$id.'neg']['data'][] = (empty($data_this_neg) ? null : $data_this_neg);
+            if (in_array($id, $locations_with_negative_flow['flow'])) {
+                $data_this_neg = $result[$bin]['flow'][$id]['flow_neg'];
+                $datasets[$id.'neg']['data'][] = (empty($data_this_neg) ? null : $data_this_neg);
+            }
         }
     }
     $chartjs['datasets'] = array_values($datasets);
+    //convert timestamps to human readable
+    for ($i = 0; $i < count($chartjs['labels']); $i++) {
+        switch ($request_details['aggregate']) {
+            //case 'h14' : $timestep = 15 * 60; break;
+            //case 'h12' : $timestep = 30 * 60; break;
+            case 'd' : $chartjs['labels'][$i] = named_week_by_mysql_index($chartjs['labels'][$i]); break;
+            case 'm' : $chartjs['labels'][$i] = named_month_by_mysql_index($chartjs['labels'][$i]); break;
+            case 'q' : $chartjs['labels'][$i] = 'Q' . $chartjs['labels'][$i]; break;
+            case 'h' : $chartjs['labels'][$i] = $chartjs['labels'][$i] . ':00'; break;
+            default: break;
+        }
+    }
 
     return json_encode($chartjs);
 }
