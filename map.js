@@ -318,12 +318,60 @@ function openMapPopup(e, layer, id) {
 	var popup = e.target.getPopup();
 	$.getJSON('markerpopup.php', { layer: layer, id: id, date: $('#map-date').val(), time: $('#map-time').val() })
 	.done( function(json) {
-		popup.setContent(json.popup);
-		popup.update();
+		//remove chart element if any, because otherwise the chart won't load properly when opening a new popup without closing the old one first
+		var chartelement = document.getElementById('availability-chart');
+		if (chartelement) {
+			chartelement.parentNode.removeChild(chartelement);
+		}
+		popup.setContent(json.popup).update();
+		//load availability graph
+		showAvailabilityGraphForPopup(layer, id);
 	})
 	.fail( function() {
-		popup.setContent('Fout: kan gegevens niet laden');
-		popup.update();
+		popup.setContent('Fout: kan gegevens niet laden').update();
+	});
+}
+
+/*
+* Show availability graph in marker's popup when it has opened
+*/
+function showAvailabilityGraphForPopup(layer, id) {
+	var chart = new Chart(document.getElementById('availability-chart'), {
+		type: 'line',
+		options: {
+			title: {
+				display: true,
+				text: 'Databeschikbaarheid'
+			},
+			responsive: false,
+			scales: {
+				yAxes: [{
+					ticks: {
+						suggestedMin: 0,
+						suggestedMax: 100,
+					},
+					scaleLabel: {
+						display: true,
+						labelString: 'Databeschikbaarheid [%]'
+					}
+				}]
+			},
+			legend: {
+				display: false
+			}
+		}
+	});
+	//add data points
+	$.getJSON('markeravailability.php', { layer: layer, id: id })
+	.done( function(json) {
+		chart.data = json;
+		chart.data.datasets[0].fill = false;
+		chart.data.datasets[0].borderColor = '#155429';
+		chart.update();
+	})
+	.fail( function() {
+		chart.options.title.text = 'Fout: kan gegevens niet laden';
+		chart.update();
 	});
 }
 
