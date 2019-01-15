@@ -20,6 +20,20 @@
 
 require 'dbconnect.inc.php';
 require 'config.inc.php';
+require 'functions/label_functions.php';
+
+//TODO: place this in separate config file with the same thing from request.php
+$aggregateoptions = array (
+    //'h14' => 'Kwartier',
+    //'h12' => 'Halfuur',
+    'h' => 'Uur',
+    'd' => 'Dag',
+    'w' => 'Week',
+    'm' => 'Maand',
+    'q' => 'Kwartaal',
+    'y' => 'Jaar'
+);
+
 ?>
 
 <!DOCTYPE html>
@@ -35,7 +49,7 @@ require 'config.inc.php';
 	
     <?php include('menu.inc.php'); 
 
-    echo '<h1>fietsv&#7433;ewer - rapport</h1>';
+    
     
     //load report by id
     $qry = "SELECT `reports`.`id` AS `report_id`, `users`.`name` AS `username`, `reports`.`name` AS `report_name`, `reports`.`worker` AS `worker`, `reports`.`process_error` AS `process_error`, `reports`.`date_create` AS `date`, `request_queue`.`request_details` AS `request_details`
@@ -48,22 +62,23 @@ require 'config.inc.php';
     LIMIT 1";
     $res = mysqli_query($db['link'], $qry);
     if (mysqli_num_rows($res)) {
-        $data = mysqli_fetch_assoc($res);
-        $request_details = json_decode($data['request_details'], TRUE);
+        $data_report = mysqli_fetch_assoc($res);
+        $request_details = json_decode($data_report['request_details'], TRUE);
         //report details
-        echo '<table>';
-        echo '<tr><td>Rapport titel</td><td>' . htmlspecialchars($data['report_name']) . '</td></tr>';
-        echo '<tr><td>Aangevraagd door</td><td>' . htmlspecialchars($data['username']) . '</td></tr>';
-        echo '<tr><td>Op datum</td><td>' . htmlspecialchars($data['date']) . '</td></tr>';
-        echo '</table>';
-        if (!empty($data['process_error'])) {
-            echo '<p class="warning">De volgende fouten zijn aangetroffen bij het genereren van dit rapport: ' . htmlspecialchars($data['process_error']) . '.</p>';
+        echo '<h1>fietsv&#7433;ewer - ' . htmlspecialchars($data_report['report_name']) . '</h1>';
+        echo '<p>NB tijden in UTC!</p>'; //TODO convert to local time
+        if (!empty($data_report['process_error'])) {
+            echo '<p class="warning">De volgende fouten zijn aangetroffen bij het genereren van dit rapport: ' . htmlspecialchars($data_report['process_error']) . '.</p>';
         }
         else {
             //include worker
-            $worker = 'workers/' . $data['worker'] . '/report.inc.php';
+            $worker = 'workers/' . $data_report['worker'] . '/report.inc.php';
+            $worker_config = 'workers/' . $data_report['worker'] . '/worker.json';
             if (file_exists($worker)) {
                 include $worker;
+                //get worker config
+                $worker_config = file_get_contents($worker_config);
+                $worker_config = json_decode($worker_config, TRUE);
 
                 //list measurement sites
                 echo '<h2>meetlocaties</h2>';
@@ -99,6 +114,35 @@ require 'config.inc.php';
                     echo '</table>';
                     echo '<p>*) Kwaliteit is de gemiddelde kwaliteit van een meetpunt over de gehele dataset.</p>';
                 }
+
+                //list request details
+                echo '<h2>rapportinstellingen</h2>';
+                echo '<table>';
+                echo '<tr><td>Rapport titel</td><td>' . htmlspecialchars($data_report['report_name']) . '</td></tr>';
+                echo '<tr><td>Rapport type</td><td>' . htmlspecialchars($worker_config['name']) . '</td></tr>';
+                for ($i = 1; $i <= $worker_config['periods']; $i++) {
+                    echo '<tr><td>';
+                    if ($i == 1) {
+                        echo 'Onderzoeksperiode:';
+                    }
+                    else {
+                        echo 'Vergeleken met basisperiode:';
+                    }
+                    echo '</td><td>';
+                    echo 'Datum: van ' . $request_details['period'][$i]['date-start'] . ' tot ' . $request_details['period'][$i]['date-end'] . '<br>';
+                    echo 'Tijd dagelijks: van ' . $request_details['period'][$i]['time-start'] . ' tot ' . $request_details['period'][$i]['time-end'] . '<br>';
+                    $daysofweek = array_map('named_dayofweek_by_mysql_index', $request_details['period'][$i]['daysofweek']);
+                    echo 'Dagen van de week: '. join(', ', $daysofweek);
+                    echo '</<td></tr>';
+                }
+                echo '<tr><td>Aggregatie</td><td>' . htmlspecialchars($aggregateoptions[$request_details['aggregate']]) . '</td></tr>';
+                //echo '<tr><td>Beschikbaarheid</td><td>' . htmlspecialchars($request_details['availability']) . '</td></tr>';
+                echo '<tr><td>Aangevraagd door</td><td>' . htmlspecialchars($data_report['username']) . '</td></tr>';
+                echo '<tr><td>Op datum</td><td>' . htmlspecialchars($data_report['date']) . '</td></tr>';
+                echo '</table>';
+
+                //link to reuse report by id
+                echo '<p><a href="request.php?id=' . $data_report['report_id']. '">rapportinstellingen hergebruiken</a></p>';
 
             }
             else {
