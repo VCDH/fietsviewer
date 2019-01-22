@@ -21,10 +21,9 @@
 require('dbconnect.inc.php');
 require('functions/bounds_to_sql.php');
 
-//convert request time to UTC
-$datetime = date_create($_GET['date'] . ' ' . $_GET['time'], timezone_open('Europe/Amsterdam'));
-date_timezone_set($datetime, timezone_open('UTC'));
-$datetime = date_format($datetime, 'Y-m-d H:i:s');
+//convert time to correct format (local time)
+$datetime = $_GET['date'] . ' ' . $_GET['time'];
+$datetime = date('Y-m-d H:i:s', strtotime($datetime));
 
 if ($_GET['layer'] == 'flow') {
 	$qry = "SELECT `mst_flow`.`id` AS `id`, `location_id`, `flow_pos`, `flow_neg`, `data_flow`.`quality` AS `quality` FROM `mst_flow`

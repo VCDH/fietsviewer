@@ -20,10 +20,9 @@
 
 require('dbconnect.inc.php');
 
-//convert request time to UTC
-$datetime = date_create($_GET['date'] . ' ' . $_GET['time'], timezone_open('Europe/Amsterdam'));
-date_timezone_set($datetime, timezone_open('UTC'));
-$datetime = date_format($datetime, 'Y-m-d H:i:s');
+//convert time to correct format (local time)
+$datetime = $_GET['date'] . ' ' . $_GET['time'];
+$datetime = date('Y-m-d H:i:s', strtotime($datetime));
 
 /*
 * function to convert a number to a display format or text if there is nothing to display

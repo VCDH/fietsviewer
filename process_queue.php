@@ -237,6 +237,7 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
                 continue;
             }
             //period from/time from
+            //TODO: interpret datetimes with provided timezone other than Europe/Amsterdam
             $date_from = date_create($line[$cols['data']['period_from']] . 'T' . $line[$cols['data']['time_from']], timezone_open('Europe/Amsterdam'));
             if ($date_from === FALSE) {
                 $errors[] = 'Invalid date/time-from on line ' . $i;
@@ -257,9 +258,9 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
                     $date_to = $date_to2;
                 }
             }
-            //set date to UTC
-            date_timezone_set($date_from, timezone_open('UTC'));
-            date_timezone_set($date_to, timezone_open('UTC'));
+            //we keep local timezone
+            //date_timezone_set($date_from, timezone_open('UTC'));
+            //date_timezone_set($date_to, timezone_open('UTC'));
             //TODO: dayofweek is not interpreted
 
             //per

@@ -66,7 +66,6 @@ $aggregateoptions = array (
         $request_details = json_decode($data_report['request_details'], TRUE);
         //report details
         echo '<h1>fietsv&#7433;ewer - ' . htmlspecialchars($data_report['report_name']) . '</h1>';
-        echo '<p>NB tijden in UTC!</p>'; //TODO convert to local time
         if (!empty($data_report['process_error'])) {
             echo '<p class="warning">De volgende fouten zijn aangetroffen bij het genereren van dit rapport: ' . htmlspecialchars($data_report['process_error']) . '.</p>';
         }

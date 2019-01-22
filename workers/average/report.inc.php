@@ -27,7 +27,6 @@ WHERE `id` = '" . mysqli_real_escape_string($db['link'], $_GET['id']) . "'
 LIMIT 1";
 $res = mysqli_query($db['link'], $qry);
 $data = mysqli_fetch_assoc($res);
-var_dump($data);
 
 //canvas for graph
 //javascript for graph
