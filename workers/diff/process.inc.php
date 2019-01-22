@@ -127,11 +127,11 @@ function worker_process($request_details) {
     //dataset
     $datasets[0] = array(
         'data' => array(),
-        'label' => 'periode 1'
+        'label' => 'onderzoeksperiode'
     );
     $datasets[1] = array(
         'data' => array(),
-        'label' => 'periode 2'
+        'label' => 'basisperiode'
     );
     foreach ($chartjs['labels'] as $bin) {
         $data_this_pos = $result[$bin]['flow'][0];
