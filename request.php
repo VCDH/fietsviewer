@@ -198,7 +198,19 @@ function validRequestCompleted() {
 function addRequestToQueue() {
     //prepare request details
     $req_details = array();
-    $req_details['markers'] = json_decode($_POST['markers']);
+    $req_details['markers'] = array();
+    //process selectedmarkers
+    if (is_array($_POST['selectedmarkers'])) {
+        foreach ($_POST['selectedmarkers'] as $selectedmarker) {
+            $selectedmarker = explode('_', $selectedmarker);
+            if (!array_key_exists($selectedmarker[0], $req_details['markers'])) {
+                $req_details['markers'][$selectedmarker[0]] = array($selectedmarker[1]);
+            }
+            else {
+                $req_details['markers'][$selectedmarker[0]][] = $selectedmarker[1];
+            }
+        }
+    }
     $req_details['aggregate'] = $_POST['aggregate'];
     $req_details['availability'] = $_POST['availability'];
     $req_details['period'] = array();
@@ -257,7 +269,19 @@ function getValuesForForm() {
         $data['name'] = htmlspecialchars($_POST['name']);
         $data['type'] = htmlspecialchars($_POST['type']);
         $data['markers'] = $_POST['markers'];
-        //TODO $data['selectedmarkers'] = array();
+        //process selectedmarkers
+        if (is_array($_POST['selectedmarkers'])) {
+            foreach ($_POST['selectedmarkers'] as $selectedmarker) {
+                $selectedmarker = explode('_', $selectedmarker);
+                if (!array_key_exists($selectedmarker[0], $data['selectedmarkers'])) {
+                    $data['selectedmarkers'][$selectedmarker[0]] = array($selectedmarker[1]);
+                }
+                else {
+                    $data['selectedmarkers'][$selectedmarker[0]][] = $selectedmarker[1];
+                }
+            }
+        }
+        //process datetime
         for ($i = 1; $i <= 2; $i++) {
             $data['period'][$i]['date-start'] = htmlspecialchars($_POST['date-start' . $i]);
             $data['period'][$i]['date-end'] = htmlspecialchars($_POST['date-end' . $i]);
@@ -414,11 +438,15 @@ if ($requestcompleted === TRUE) {
         <p>De meetlocaties die worden meegenomen in de analyse zijn gebaseerd op de meest recente kaartweergave: de meetlocaties die op dat moment in beeld waren, worden meegenomen in de analyse. Bij twijfel, <a href="index.php">ga terug naar de kaart</a> en stel de kaartweergave goed in. De kaartlagen die zijn ingeschakeld bepalen ook welke analyses beschikbaar zijn.</p>
         <?php
         echo '<table>';
-        echo '<tr><th></th><th>ID</th><th>Adres</th><th>Grootheid</th><th>Meetmethode</th></tr>';
+        echo '<tr><th><input type="checkbox" id="allornothingmarkers" checked></th><th>ID</th><th>Adres</th><th>Grootheid</th><th>Meetmethode</th></tr>';
        
         foreach ($selectedmarkers as $marker) {
             echo '<tr><td>';
-            echo '<input type="checkbox" name="selectedmarkers[]" value="' . $marker['layer'] . '_' . $marker['id'] . '" checked disabled>';
+            echo '<input type="checkbox" name="selectedmarkers[]" value="' . $marker['layer'] . '_' . $marker['id'] . '"';
+            if (empty($value['selectedmarkers']) || in_array($marker['id'], $value['selectedmarkers'][$marker['layer']])) {
+                echo ' checked';
+            }
+            echo '>';
             echo '</td><td>';
             echo htmlspecialchars($marker['location_id']);
             echo '</td><td>';

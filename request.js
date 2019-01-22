@@ -72,6 +72,18 @@ function showHidePeriodSelect2() {
 }
 
 /*
+* handler for all-or-nothing selection of checkboxes
+*/
+function allOrNothingMarkersCheckbox() {
+	if ($('#allornothingmarkers').prop('checked') == true) {
+		$('input[name="selectedmarkers[]"]').prop('checked', true);
+	}
+	else {
+		$('input[name="selectedmarkers[]"]').prop('checked', false);
+	}
+}
+
+/*
 * document.ready
 */
 $(function() {
@@ -80,6 +92,9 @@ $(function() {
 	});
 	$('#form-daysofweek2 a').click( function () {
 		daysofweekSelectUI($(this).attr('id'));
+	});
+	$('#allornothingmarkers').change( function () {
+		allOrNothingMarkersCheckbox();
 	});
 	//show/hide email-to field on load and click
 	showHideEmailTo();
