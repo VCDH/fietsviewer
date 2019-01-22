@@ -143,7 +143,10 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             'time_from' => array('tijd-van', 'time-from'),
             'time_to' => array('tijd-tot', 'time-to'),
             'per' => array('per'),
-            'wait-time' => array('wachttijd', 'wait-time')
+            'wait-time' => array('wachttijd', 'wait-time'),
+            'max-wait-time' => array('max-wachttijd', 'max-wait-time'),
+            'timeloss' => array('verliesminuten', 'timeloss', 'time-loss-minutes'),
+            'greenarrival' => array('groenaankomst', 'greenarrival', 'percentage-green-arrival')
         );
     }
     if (empty($cols)) {
@@ -327,6 +330,21 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             if (($line[$cols['data']['per']] == 0) || ($line[$cols['data']['per']] == 2)) {
                 $line[$cols['data']['wait-time']] = $line[$cols['data']['wait-time']];
             }
+            //max-wait-time
+            if ((!empty($line[$cols['data']['max-wait-time']])) && (!is_numeric($line[$cols['data']['max-wait-time']]) || ($line[$cols['data']['max-wait-time']] < 0))) {
+                $errors[] = 'Invalid max-wait-time on line ' . $i . '; must be larger than or equal to 0 or left blank';
+                continue;
+            }
+            //timeloss
+            if ((!empty($line[$cols['data']['timeloss']])) && (!is_numeric($line[$cols['data']['timeloss']]) || ($line[$cols['data']['timeloss']] < 0))) {
+                $errors[] = 'Invalid timeloss on line ' . $i . '; must be larger than or equal to 0 or left blank';
+                continue;
+            }
+            //greenarrival
+            if ((!empty($line[$cols['data']['greenarrival']])) && (!is_numeric($line[$cols['data']['greenarrival']]) || ($line[$cols['data']['greenarrival']] < 0))) {
+                $errors[] = 'Invalid greenarrival on line ' . $i . '; must be larger than or equal to 0 or left blank';
+                continue;
+            }
         }
         
         //overwrite mst details
@@ -419,6 +437,9 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
                     '"' . date_format($date_from, 'Y-m-d H:i:s') . '"',
                     '"' . date_format($date_to, 'Y-m-d H:i:s') . '"',
                     $line[$cols['data']['wait-time']],
+                    $line[$cols['data']['max-wait-time']],
+                    $line[$cols['data']['timeloss']],
+                    $line[$cols['data']['greenarrival']],
                     $line[$cols['data']['quality']]
                 );
             }
@@ -467,8 +488,11 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             OPTIONALLY ENCLOSED BY '\"'
         LINES
             TERMINATED BY '" . PHP_EOL . "'
-        (`id`, `datetime_from`, `datetime_to`, `wait-time`, @quality)
+        (`id`, `datetime_from`, `datetime_to`, `avg_waittime`, @max_waittime, @timeloss, @greenarrival, @quality)
         SET
+        `max_waittime` = NULLIF(@max_waittime, ''),
+        `timeloss` = NULLIF(@timeloss, ''),
+        `greenarrival` = NULLIF(@greenarrival, ''),
         `quality` = NULLIF(@quality, '')";
     }
     mysqli_query($db['link'], $qry);

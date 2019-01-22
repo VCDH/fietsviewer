@@ -638,6 +638,12 @@ DROP FOREIGN KEY `upload_queue_ibfk_2`,
 CHANGE `prefix_id` `dataset_id` INT UNSIGNED NOT NULL,
 ADD FOREIGN KEY (`dataset_id`) REFERENCES `datasets` (`id`)";
 
+$qry[] = "ALTER TABLE `data_waittime` 
+CHANGE `wait-time` `avg_waittime` FLOAT UNSIGNED NOT NULL,
+ADD `max_waittime` FLOAT UNSIGNED NULL AFTER `avg_waittime`,
+ADD `timeloss` FLOAT UNSIGNED NULL AFTER `avg_waittime`,
+ADD `greenarrival` FLOAT UNSIGNED NULL AFTER `avg_waittime`";
+
 $qry[] = "ALTER TABLE `mst_flow` 
 ADD `dataset_id` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `id`, 
 ADD FOREIGN KEY ( `dataset_id` ) REFERENCES `datasets` (`id`)";

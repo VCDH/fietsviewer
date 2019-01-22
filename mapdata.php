@@ -88,7 +88,7 @@ elseif ($_GET['layer'] == 'rln') {
 	}
 }
 elseif ($_GET['layer'] == 'waittime') {
-	$qry = "SELECT `mst_waittime`.`id` AS `id`, `location_id`, `wait-time`, `data_waittime`.`quality` AS `quality` FROM `mst_waittime`
+	$qry = "SELECT `mst_waittime`.`id` AS `id`, `location_id`, `avg_waittime`, `data_waittime`.`quality` AS `quality` FROM `mst_waittime`
     LEFT JOIN `data_waittime`
     ON `mst_waittime`.`id` = `data_waittime`.`id`
     WHERE " . bounds_to_sql($_GET['bounds']) . "
@@ -99,16 +99,16 @@ elseif ($_GET['layer'] == 'waittime') {
 	while ($data = mysqli_fetch_assoc($res)) {
         //calculate color
         $color = 0;
-        if (($data['wait-time']) > 0) {
+        if (($data['avg_waittime']) > 0) {
             $color = 1;
         }
-        if (($data['wait-time']) > 15) {
+        if (($data['avg_waittime']) > 15) {
             $color = 2;
         }
-        if (($data['wait-time']) > 30) {
+        if (($data['avg_waittime']) > 30) {
             $color = 3;
         }
-        if (($data['wait-time']) > 45) {
+        if (($data['avg_waittime']) > 45) {
             $color = 4;
         }
         //add to output

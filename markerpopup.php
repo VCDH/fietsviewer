@@ -102,7 +102,7 @@ elseif ($_GET['layer'] == 'rln') {
 	}
 }
 elseif ($_GET['layer'] == 'waittime') {
-	$qry = "SELECT `mst_waittime`.`id` AS `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `wait-time`, `t1`.`quality` AS `quality` 
+	$qry = "SELECT `mst_waittime`.`id` AS `id`, `location_id`, `address`, `lat`, `lon`, `heading`, `description`, `avg_waittime`, `max_waittime`, `timeloss`, `greenarrival`, `t1`.`quality` AS `quality` 
 	FROM `mst_waittime`
 	LEFT JOIN `method_flow`
 	ON `mst_waittime`.`method` = `method_flow`.`name`
@@ -125,7 +125,10 @@ elseif ($_GET['layer'] == 'waittime') {
 		<tr><td>Richting:</td><td>' . $data['heading'] . ' graden</td></tr>
 		<tr><td>Methode:</td><td>' . htmlspecialchars($data['description']) . '</td></tr>
 		<tr><td>Kwaliteit:</td><td>' . echo_number($data['quality'], '%') . '</td></tr>
-		<tr><td>Gemiddelde wachttijd:</td><td>' . echo_number($data['wait-time'], 'seconden') . '</td></tr>
+		<tr><td>Gemiddelde wachttijd:</td><td>' . echo_number($data['avg_waittime'], 'seconden') . '</td></tr>
+		<tr><td>Maximale wachttijd:</td><td>' . echo_number($data['max_waittime'], 'seconden') . '</td></tr>
+		<tr><td>Verliesminuten:</td><td>' . echo_number($data['timeloss'], 'minuten') . '</td></tr>
+		<tr><td>Groenaankomst:</td><td>' . echo_number($data['greenarrival'], '%') . '</td></tr>
 		</table>';
 	}
 }
