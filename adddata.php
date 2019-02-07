@@ -313,7 +313,7 @@ if (!empty($_FILES)) {
         $data = mysqli_fetch_assoc($res);
         ?>
         <table>
-            <tr><th>URL</th><td><?php echo htmlspecialchars(substr($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], '/'))) . '/api/add/'; ?></td></tr>
+            <tr><th>URL</th><td><?php echo htmlspecialchars($_SERVER["REQUEST_SCHEME"] . '://' . substr($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], '/'))) . '/api/add/'; ?></td></tr>
             <tr><th>gebruikersnaam</th><td><?php echo htmlspecialchars(getuserdata('username')); ?></td></tr>
             <tr><th>wachtwoord</th><td>(bekend bij gebruiker)</td></tr>
             <tr><th>maximale POST grootte</th><td><?php echo ini_get('post_max_size'); ?></td></tr>
