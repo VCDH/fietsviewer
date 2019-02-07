@@ -219,7 +219,7 @@ if (!empty($_FILES)) {
     if (mysqli_num_rows($res)) {
         echo '<p>Onderstaande databestanden zijn ontvangen maar moeten nog verwerkt worden.</p>';
         echo '<table><thead>';
-        echo '<tr><th>Toegevoegd</th><th>Bestand</th><th>Gegevensset</th><th>Type</th></tr>';
+        echo '<tr><th>ID</th><th>Toegevoegd</th><th>Bestand</th><th>Gegevensset</th><th>Type</th></tr>';
         echo '</thead><tbody>';
         while ($row = mysqli_fetch_row($res)) {
             echo '<tr><td>';
