@@ -206,7 +206,7 @@ function setMapTileLayer(tile_id) {
 */
 function getMapStyle() {
 	//get map style
-	if ((typeof onloadCookie !== 'undefined') && ((onloadCookie[2] == 'map-style-grayscale') || (onloadCookie[2] == 'map-style-lighter')  || (onloadCookie[2] == 'map-style-dark') || (onloadCookie[2] == 'map-style-oldskool')) || (onloadCookie[2] == 'map-style-cycle')) {
+	if ((typeof onloadCookie !== 'undefined') && ((onloadCookie[2] == 'map-style-grayscale') || (onloadCookie[2] == 'map-style-lighter')  || (onloadCookie[2] == 'map-style-dark') || (onloadCookie[2] == 'map-style-oldskool') || (onloadCookie[2] == 'map-style-cycle'))) {
 		mapStyle = onloadCookie[2];
 	}
 	else {
@@ -602,7 +602,7 @@ $(function() {
 	updateFilterOptions();
 	onloadCookie = Cookies.getJSON('fietsviewer_map');
 	//get date from cookie
-	if ((typeof onloadCookie[4] !== 'undefined') && (typeof onloadCookie[5] !== 'undefined')) {
+	if ((typeof onloadCookie !== 'undefined') && (typeof onloadCookie[4] !== 'undefined') && (typeof onloadCookie[5] !== 'undefined')) {
 		$('#map-date').val(onloadCookie[4]);
 		$('#map-time').val(onloadCookie[5]);	
 	}
