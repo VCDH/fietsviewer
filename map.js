@@ -488,7 +488,7 @@ function updateFilterOptions() {
 		});
 		//datasets
 		$.each(json.set, function(i, val) {
-			$('#filter-set').append('<input type="checkbox" id="filter-set-' + val.id + '"><label for="filter-set-' + val.id + '" title="' + val.name + ' - ' + val.desc + '">' + val.prefix + '</label><br>');
+			$('#filter-set').append('<input type="checkbox" id="filter-set-' + val.id + '"><label for="filter-set-' + val.id + '" title="' + val.prefix + ' - ' + val.desc + '">' + val.name + '</label><br>');
 			$('#filter-set-' + val.id).prop('checked', true).change(function() { updateMapLayers(); });
 		});
 	});
