@@ -95,6 +95,27 @@ function worker_process($request_details) {
                 $result[$bin][$layer][0] = (int) $row[1] + $row[2];
             }
         }
+        elseif ($layer == 'waittime') {
+            $qry_ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
+            $qry_ids = join(',', $qry_ids);
+                
+            $qry = "SELECT `id`, AVG(`avg_waittime`), MAX(`max_waittime`), SUM(`timeloss`), AVG(`greenarrival`), " . $groupby . " FROM `data_waittime`
+            WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-end']) . "'
+            AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-end']))) . "'
+            AND DAYOFWEEK(`datetime_from`) IN (" . join(', ', $dayofweek_1) .")
+            AND `id` IN (" .  $qry_ids . ")
+            GROUP BY " . $groupby;
+            $res = mysqli_query($db['link'], $qry);
+            while ($row = mysqli_fetch_row($res)) {
+                //decide bin or bins for time period
+                $bin = $row[5]; //always a single bin
+                //add result to correct bin
+                $result[$bin][$layer][2] = (int) $row[1];
+                $result[$bin][$layer][4] = (int) $row[2];
+                $result[$bin][$layer][6] = (int) $row[3];
+                $result[$bin][$layer][8] = (int) $row[4];
+            }
+        }
     }
     //second 
     foreach ($layers as $layer => $ids) {
@@ -116,6 +137,27 @@ function worker_process($request_details) {
                 $result[$bin][$layer][1] = (int) $row[1] + $row[2];
             }
         }
+        elseif ($layer == 'waittime') {
+            $qry_ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
+            $qry_ids = join(',', $qry_ids);
+                
+            $qry = "SELECT `id`, AVG(`avg_waittime`), MAX(`max_waittime`), SUM(`timeloss`), AVG(`greenarrival`), " . $groupby . " FROM `data_waittime`
+            WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['2']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['2']['date-end']) . "'
+            AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['2']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['2']['time-end']))) . "'
+            AND DAYOFWEEK(`datetime_from`) IN (" . join(', ', $dayofweek_2) .")
+            AND `id` IN (" .  $qry_ids . ")
+            GROUP BY " . $groupby;
+            $res = mysqli_query($db['link'], $qry);
+            while ($row = mysqli_fetch_row($res)) {
+                //decide bin or bins for time period
+                $bin = $row[5]; //always a single bin
+                //add result to correct bin
+                $result[$bin][$layer][3] = (int) $row[1];
+                $result[$bin][$layer][5] = (int) $row[2];
+                $result[$bin][$layer][7] = (int) $row[3];
+                $result[$bin][$layer][9] = (int) $row[4];
+            }
+        }
     }
     ksort($result);
     //build chart.js data format
@@ -127,17 +169,74 @@ function worker_process($request_details) {
     //dataset
     $datasets[0] = array(
         'data' => array(),
-        'label' => 'onderzoeksperiode'
+        'type' => 'line',
+        'label' => 'fietsers onderzoeksperiode',
+        'yAxisID' => 'axis-count'
     );
     $datasets[1] = array(
         'data' => array(),
-        'label' => 'basisperiode'
+        'type' => 'line',
+        'label' => 'fietsers basisperiode',
+        'yAxisID' => 'axis-count'
     );
+    $datasets[2] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'gem wachttijd onderzoeksperiode',
+        'yAxisID' => 'axis-seconds'
+    );
+    $datasets[3] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'gem wachttijd basisperiode',
+        'yAxisID' => 'axis-seconds'
+    );
+    $datasets[4] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'max wachttijd onderzoeksperiode',
+        'yAxisID' => 'axis-seconds'
+    );
+    $datasets[5] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'max wachttijd basisperiode',
+        'yAxisID' => 'axis-seconds'
+    );
+    $datasets[6] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'verliesminuten onderzoeksperiode',
+        'yAxisID' => 'axis-minutes'
+    );
+    $datasets[7] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'verliesminuten basisperiode',
+        'yAxisID' => 'axis-minutes'
+    );
+    $datasets[8] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'groenaankomst onderzoeksperiode',
+        'yAxisID' => 'axis-percent'
+    );
+    $datasets[9] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'groenaankomst basisperiode',
+        'yAxisID' => 'axis-percent'
+    );
+
     foreach ($chartjs['labels'] as $bin) {
-        $data_this_pos = $result[$bin]['flow'][0];
-        $datasets[0]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
-        $data_this_pos = $result[$bin]['flow'][1];
-        $datasets[1]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
+        for ($i = 0; $i < 2; $i++) {
+            $data_this_pos = $result[$bin]['flow'][$i];
+            $datasets[$i]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
+        }
+        for ($i = 2; $i < 10; $i++) {
+            $data_this_pos = $result[$bin]['waittime'][$i];
+            $datasets[$i]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
+        }
     }
     $chartjs['datasets'] = array_values($datasets);
     //convert timestamps to human readable
