@@ -68,10 +68,25 @@ function checkSelectedMarkers($json_markers) {
     foreach ($requestedMarkers as $layer => $markers) {
         //loop markers
         foreach ($markers as $marker) {
-            if ($layer = 'flow') {
+            if ($layer == 'flow') {
                 $qry = "SELECT `mst_flow`.`id` as `id`, `location_id`, `address`, `description` FROM `mst_flow`
                 LEFT JOIN `method_flow`
                 ON `mst_flow`.`method` = `method_flow`.`name`
+                WHERE `id` = '" . mysqli_real_escape_string($db['link'], $marker) . "'";
+                $res = mysqli_query($db['link'], $qry);
+                if (mysqli_num_rows($res)) {
+                    $data = mysqli_fetch_assoc($res);
+                    $data['layer'] = $layer;
+                    if (!in_array($layer, $distinctLayers)) {
+                        $distinctLayers[] = $layer;
+                    }
+                    $returnedMarkers[] = $data;
+                }
+            }
+            elseif ($layer == 'waittime') {
+                $qry = "SELECT `mst_waittime`.`id` as `id`, `location_id`, `address`, `description` FROM `mst_waittime`
+                LEFT JOIN `method_flow`
+                ON `mst_waittime`.`method` = `method_flow`.`name`
                 WHERE `id` = '" . mysqli_real_escape_string($db['link'], $marker) . "'";
                 $res = mysqli_query($db['link'], $qry);
                 if (mysqli_num_rows($res)) {
@@ -111,7 +126,7 @@ function validRequestCompleted() {
     //check analysis type
     //TODO: workers inlezen uit worker-directory
     $type = NULL;
-    $valid_types = array ('flow' => array ('diff', 'trend', 'plot', 'average'));
+    $valid_types = array ('flow' => array ('diff', 'trend', 'plot', 'average'), 'waittime' => array ('diff', 'trend', 'plot', 'average'));
     $available_types = array_intersect_key($valid_types, $requestedMarkers);
     if (empty($available_types)) {
         $errors[] = 'layer';
@@ -340,20 +355,22 @@ function getValuesForForm() {
 */
 function loadWorkers($distinctlayers) {
     $workers = array();
-    //load workers from worker-directory
     $dir = 'workers';
-    $dirlist = scandir($dir);
-    foreach ($dirlist as $i) {
-        if (is_dir($dir . '/' . $i) && (substr($i, 0, 1) != '.')) {
-            $worker_config_file = $dir . '/' . $i . '/worker.json';
-            if (is_file($worker_config_file)) {
-                $json = file_get_contents($worker_config_file);
-                $json = json_decode($json, TRUE);
-                //check if required data layers are selected for this worker
-                $intersect = array_intersect($distinctlayers, $json['layers']);
-                if (($json !== NULL) && !empty($intersect)) {
-                    //add worker to list
-                    $workers[$i] = $json;
+    //load workers from worker-directory
+    if (!empty($distinctlayers)) {
+        $dirlist = scandir($dir);
+        foreach ($dirlist as $i) {
+            if (is_dir($dir . '/' . $i) && (substr($i, 0, 1) != '.')) {
+                $worker_config_file = $dir . '/' . $i . '/worker.json';
+                if (is_file($worker_config_file)) {
+                    $json = file_get_contents($worker_config_file);
+                    $json = json_decode($json, TRUE);
+                    //check if required data layers are selected for this worker
+                    $intersect = array_intersect($distinctlayers, $json['layers']);
+                    if (($json !== NULL) && !empty($intersect)) {
+                        //add worker to list
+                        $workers[$i] = $json;
+                    }
                 }
             }
         }

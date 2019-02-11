@@ -89,11 +89,11 @@ $aggregateoptions = array (
                         if (is_array($ids)) {
                             $ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
                             $ids = join(',', $ids);
-                            if ($layer == 'flow') {
+                            if (in_array($layer, array('flow', 'waittime'))) {
                                 $qry ="SELECT `location_id`, `address`, `method_flow`.`description`, `quality`
-                                FROM `mst_flow`
+                                FROM `mst_" . $layer . "`
                                 LEFT JOIN `method_flow`
-                                ON `mst_flow`.`method` = `method_flow`.`name`
+                                ON `mst_" . $layer . "`.`method` = `method_flow`.`name`
                                 WHERE `id` IN (" .  $ids . ")";
                                 $res = mysqli_query($db['link'], $qry);
                                 while ($row = mysqli_fetch_row($res)) {
