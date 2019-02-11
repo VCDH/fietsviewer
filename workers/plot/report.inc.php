@@ -1,7 +1,7 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands
     Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
@@ -34,12 +34,8 @@ $data = mysqli_fetch_assoc($res);
 <canvas id="line-chart" width="800" height="450"></canvas>
 <script>
 var chart = new Chart(document.getElementById("line-chart"), {
-    type: 'line',
+    type: 'bar',
     options: {
-        title: {
-            display: true,
-            text: 'Aantal fietsers per meetpunt'
-        },
         responsive: false,
         scales: {
             yAxes: [{
@@ -48,12 +44,60 @@ var chart = new Chart(document.getElementById("line-chart"), {
                 },
                 scaleLabel: {
                     display: true,
-                    labelString: 'Aantal fietsers'
-                }
+                    labelString: 'fietsers'
+                },
+                position: "left",
+                id: "axis-count"
+            },
+            {
+                ticks: {
+                    suggestedMin: 0,
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'procent'
+                },
+                position: "left",
+                id: "axis-percent"
+            },
+            {
+                ticks: {
+                    suggestedMin: 0,
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'seconden'
+                },
+                position: "right",
+                id: "axis-seconds"
+            },
+            {
+                ticks: {
+                    suggestedMin: 0,
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'minuten'
+                },
+                position: "right",
+                id: "axis-minutes"
             }]
         },
         legend: {
             position: 'bottom'
+        },
+        tooltips: {
+            callbacks: {
+                label: function(tooltipItem, data) {
+                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    label += tooltipItem.yLabel;
+                    label += ' ' + chart.scales[data.datasets[tooltipItem.datasetIndex].yAxisID].options.scaleLabel.labelString;
+                    return label;
+                }
+            }
         }
     }
 });
@@ -63,6 +107,7 @@ chart.data = JSON.parse('<?php echo $data['result']; ?>');
 for (var i = 0; i < chart.data.datasets.length; i++) {
     chart.data.datasets[i].fill = false;
     chart.data.datasets[i].borderColor = randomColor();
+    chart.data.datasets[i].backgroundColor = chart.data.datasets[i].borderColor;
 }
 chart.update();
 

@@ -1,7 +1,7 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands
     Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
@@ -93,6 +93,36 @@ function worker_process($request_details) {
                 $result[$bin][$layer] = (int) $row[1] + $row[2];
             }
         }
+        if ($layer == 'waittime') {
+            $ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
+            $ids = join(',', $ids);
+                
+            $qry = "SELECT `id`, AVG(`avg_waittime`), MAX(`max_waittime`), SUM(`timeloss`), AVG(`greenarrival`), " . $groupby . " FROM `data_waittime`
+            WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-end']) . "'
+            AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-end']))) . "'
+            AND DAYOFWEEK(`datetime_from`) IN (" . join(', ', $dayofweek) .")
+            AND `id` IN (" .  $ids . ")
+            GROUP BY " . $groupby;
+            $res = mysqli_query($db['link'], $qry);
+            while ($row = mysqli_fetch_row($res)) {
+                //decide bin or bins for time period
+                switch ($request_details['aggregate']) {
+                    //case 'h14' : $timestep = 15 * 60; break;
+                    //case 'h12' : $timestep = 30 * 60; break;
+                    case 'h' : 
+                    case 'm' : 
+                    case 'q' : $bin = $row[5].str_pad($row[6], 2, '0', STR_PAD_LEFT); break;
+                    default: $bin = $row[5]; //day, week, year
+                }
+                //add result to correct bin
+                $result[$bin][$layer] = array(
+                    1 => (int) $row[1],
+                    2 => (int) $row[2],
+                    3 => (int) $row[3],
+                    4 => (int) $row[4]
+                );
+            }
+        }
     }
     ksort($result);
     //build chart.js data format
@@ -104,11 +134,43 @@ function worker_process($request_details) {
     //dataset
     $datasets[0] = array(
         'data' => array(),
-        'label' => 'trend'
+        'type' => 'line',
+        'label' => 'fietsers',
+        'yAxisID' => 'axis-count'
+    );
+    $datasets[1] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'gem wachttijd',
+        'yAxisID' => 'axis-seconds'
+    );
+    $datasets[2] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'max wachttijd',
+        'yAxisID' => 'axis-seconds'
+    );
+    $datasets[3] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'verliesminuten',
+        'yAxisID' => 'axis-minutes'
+    );
+    $datasets[4] = array(
+        'data' => array(),
+        'type' => 'bar',
+        'label' => 'groenaankomst',
+        'yAxisID' => 'axis-percent'
     );
     foreach ($chartjs['labels'] as $bin) {
+        //flow
         $data_this_pos = $result[$bin]['flow'];
         $datasets[0]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
+        //waittime
+        for ($i = 1; $i < 5; $i++) {
+            $data_this_pos = $result[$bin]['waittime'][$i];
+            $datasets[$i]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
+        }
     }
     $chartjs['datasets'] = array_values($datasets);
     //convert timestamps to human readable

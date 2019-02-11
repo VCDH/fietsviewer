@@ -34,12 +34,8 @@ $data = mysqli_fetch_assoc($res);
 <canvas id="line-chart" width="800" height="450"></canvas>
 <script>
 var chart = new Chart(document.getElementById("line-chart"), {
-    type: 'line',
+    type: 'bar',
     options: {
-        title: {
-            display: true,
-            text: 'Trend aantallen fietsers'
-        },
         responsive: false,
         scales: {
             yAxes: [{
@@ -48,20 +44,86 @@ var chart = new Chart(document.getElementById("line-chart"), {
                 },
                 scaleLabel: {
                     display: true,
-                    labelString: 'Aantal fietsers'
-                }
+                    labelString: 'fietsers'
+                },
+                position: "left",
+                id: "axis-count"
+            },
+            {
+                ticks: {
+                    suggestedMin: 0,
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'procent'
+                },
+                position: "left",
+                id: "axis-percent"
+            },
+            {
+                ticks: {
+                    suggestedMin: 0,
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'seconden'
+                },
+                position: "right",
+                id: "axis-seconds"
+            },
+            {
+                ticks: {
+                    suggestedMin: 0,
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'minuten'
+                },
+                position: "right",
+                id: "axis-minutes"
             }]
         },
         legend: {
-            display: false
+            position: 'bottom'
+        },
+        tooltips: {
+            callbacks: {
+                label: function(tooltipItem, data) {
+                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    label += tooltipItem.yLabel;
+                    label += ' ' + chart.scales[data.datasets[tooltipItem.datasetIndex].yAxisID].options.scaleLabel.labelString;
+                    return label;
+                }
+            }
         }
     }
 });
 //add data points
 chart.data = JSON.parse('<?php echo $data['result']; ?>');
 //disable line area fill
-chart.data.datasets[0].fill = false;
-chart.data.datasets[0].borderColor = '#155429';
+for (var i = 0; i < chart.data.datasets.length; i++) {
+    chart.data.datasets[i].fill = false;
+    chart.data.datasets[i].borderColor = randomColor();
+    chart.data.datasets[i].backgroundColor = chart.data.datasets[i].borderColor;
+}
 chart.update();
 
+function randomColor() {
+    var r = Math.floor(Math.random() * 255);
+    var g = Math.floor(Math.random() * 255);
+    var b = Math.floor(Math.random() * 255);
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
 </script>
+
+<p><b>Toelichting bij de grafiek</b></p>
+<ul>
+    <li>fietsers: som van aantal fietsers in periode op tijdstip</li>
+    <li>gem wachttijd: gemiddelde wachtijd in periode op tijdstip</li>
+    <li>max wachttijd: maximale wachttijd in periode op tijdstip</li>
+    <li>verliesminuten: som van verliesminuten in periode op tijdstip</li>
+    <li>groenaankomst: gemiddelde groenaankomst in periode op tijdstip</li>
+</ul>
