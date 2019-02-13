@@ -475,7 +475,7 @@ function drawLayerGUI() {
 			$.each(options.subtypes, function(subtype, suboptions) {
 				ul_this.append('<li><input type="radio" id="map-layer-subtype-' + layer + '-' + subtype + '" name="map-layer-subtype-' + layer + '"><label for="map-layer-subtype-' + layer + '-' + subtype + '" value="' + subtype + '">' + suboptions.name + '</label></li>');
 				if (maplayers[layer].subtypes[subtype].active == true) {
-					$('#map-layer-subtype-' + layer + subtype).prop('checked', true);
+					$('#map-layer-subtype-' + layer + '-' + subtype).prop('checked', true);
 				}
 			});
 		}
