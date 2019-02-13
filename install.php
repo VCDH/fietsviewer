@@ -1,7 +1,7 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands
     Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
@@ -73,8 +73,6 @@ echo '###                     fietsviewer installatieprogramma                  
 echo '###                                                                         ###' . PHP_EOL;
 echo '###############################################################################' . PHP_EOL;
 echo '###                                                                         ###' . PHP_EOL;
-echo '### Welkom bij het installatieprogramma van fietsviewer.                    ###' . PHP_EOL;
-echo '###                                                                         ###' . PHP_EOL;
 echo '### Via dit installatieprogramma wordt een configuratiebestand aangemaakt   ###' . PHP_EOL;
 echo '### en de noodzakelijke database en databasetabellen aangemaakt.            ###' . PHP_EOL;
 echo '### Daarnaast wordt een beheeraccount voor de grafische interface gemaakt.  ###' . PHP_EOL;
@@ -86,7 +84,8 @@ echo '###                                                                       
 echo '### fietsviewer is vrij beschikbaar onder de voorwaarden van de             ###' . PHP_EOL;
 echo '### GNU General Public License versie 3 of (naar keuze) elke hogere versie. ###' . PHP_EOL;
 echo '###                                                                         ###' . PHP_EOL;
-echo '### fietsviewer Copyright (C) 2018 Jasper Vries, Gemeente Den Haag          ###' . PHP_EOL;
+echo '### fietsviewer Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands      ###' . PHP_EOL;
+echo '### Developed by Jasper Vries                                               ###' . PHP_EOL;
 echo '### This program comes with ABSOLUTELY NO WARRANTY. This is free software,  ###' . PHP_EOL;
 echo '### and you are welcome to redistribute it under certain conditions. Type   ###' . PHP_EOL;
 echo '### 1 for details.                                                          ###' . PHP_EOL;

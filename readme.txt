@@ -41,6 +41,7 @@ password_compat voor een in-plaats alternatief voor de PHP password_* functies.
 
 URLs:
 JQuery: https://jquery.com
+JQuery UI: https://jqueryui.com
 Leaflet: https://leafletjs.com
 Leaflet Rotated Marker: https://github.com/bbecquet/Leaflet.RotatedMarker
 OpenStreetMap: https://www.openstreetmap.org
@@ -99,7 +100,7 @@ Met uitzondering van gebundelde libraries is voor fietsviewer het volgende van
 toepassing:
 
     fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands
     Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
