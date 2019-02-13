@@ -1,6 +1,6 @@
 /*
 *	fietsviewer - grafische weergave van fietsdata
-*   Copyright (C) 2018 Gemeente Den Haag, Netherlands
+*   Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands
 *   Developed by Jasper Vries
 *
 *   This program is free software: you can redistribute it and/or modify
@@ -30,21 +30,33 @@ var markers = {};
 var maplayers = {
 	flow: {
 		name: 'Intensiteit',
-		unit: 'f/u',
-		unit_full: 'fietsers/uur',
 		active: true
 	},
 	rln: {
 		name: 'Rood Licht Negatie',
-		unit: 'u<sup>-1</sup>',
-		unit_full: 'aantal/uur',
-		active: true
+		active: false
 	},
 	waittime: {
-		name: 'Gemiddelde Wachttijd',
-		unit: 'sec/uur',
-		unit_full: 'seconden/uur',
-		active: true
+		name: 'Wachttijd',
+		active: false,
+		subtypes: {
+			avg_waittime: {
+				name: 'Gemiddelde Wachttijd',
+				active: true,
+			},
+			max_waittime: {
+				name: 'Maximale Wachttijd',
+				active: false,
+			},
+			timeloss: {
+				name: 'Verliesminuten',
+				active: false,
+			},
+			greenarrival: {
+				name: 'Groenaankomst',
+				active: false,
+			}
+		}
 	}
 };
 var icons = {
@@ -390,7 +402,7 @@ function updateLayerData() {
 * Attach data values to the markers
 */
 function loadLayerData(layer) {
-	$.getJSON('mapdata.php', { layer: layer, bounds: map.getBounds().toBBoxString(), date: $('#map-date').val(), time: $('#map-time').val(), filter: getCurrentlySelectedFilters() })
+	$.getJSON('mapdata.php', { layer: layer, subtype: getActiveLayerSubtype(layer), bounds: map.getBounds().toBBoxString(), date: $('#map-date').val(), time: $('#map-time').val(), filter: getCurrentlySelectedFilters() })
 	.done( function(json) {
 		//loop markers
 		if (markers.hasOwnProperty(layer)) {
@@ -457,16 +469,56 @@ function drawLayerGUI() {
 		else if (maplayers[layer].active == true) {
 			$('#map-layer-' + layer).prop('checked', true);
 		}
+		//add subtypes
+		if (typeof options.subtypes !== 'undefined') {
+			var ul_this = $('#map-layers').append('<ul id="map-layer-subtypecontainer-' + layer + '"></ul>').children("ul:last-child");
+			$.each(options.subtypes, function(subtype, suboptions) {
+				ul_this.append('<li><input type="radio" id="map-layer-subtype-' + layer + '-' + subtype + '" name="map-layer-subtype-' + layer + '"><label for="map-layer-subtype-' + layer + '-' + subtype + '" value="' + subtype + '">' + suboptions.name + '</label></li>');
+				if (maplayers[layer].subtypes[subtype].active == true) {
+					$('#map-layer-subtype-' + layer + subtype).prop('checked', true);
+				}
+			});
+		}
 	});
-	$('#map-layers input').change( function() {
+	$('#map-layers input[type=checkbox]').change( function() {
 		var layer = this.id.substr(10);
 		var enableState = $(this).prop('checked');
 		maplayers[layer].active = enableState;
 		updateMapLayers();
 		setMapCookie();
 	});
+	$('#map-layers input[type=radio]').change( function() {
+		var layersubtype = this.id.substr(18).split('-');
+		var layer = layersubtype[0];
+		$.each(maplayers[layer].subtypes, function(subtype, suboptions) {
+			if (subtype == layersubtype[1]) {
+				maplayers[layer].subtypes[subtype].active = true;
+			}
+			else {
+				maplayers[layer].subtypes[subtype].active = false;
+			}
+		});
+		updateMapLayers();
+	});
 	updateMapLayers();
 	setMapCookie();
+}
+
+/*
+* Get active layer subtype by layer
+*/
+
+function getActiveLayerSubtype(layer) {
+	var returnval;
+	if (typeof maplayers[layer].subtypes === 'undefined') {
+		returnval = null;
+	}
+	$.each(maplayers[layer].subtypes, function(subtype, suboptions) {
+		if (suboptions.active == true) {
+			returnval = subtype;
+		}
+	});
+	return returnval;
 }
 
 /*

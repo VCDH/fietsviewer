@@ -44,6 +44,20 @@ html, body {
 	z-index: 1500;
 }
 
+#map-options-container div {
+	padding: 10px;
+	font-size: small;
+	font-family: Arial, Helvetica, sans-serif;
+}
+#map-options-container div ul {
+	padding: 0;
+	margin: 0;
+}
+#map-options-container div ul li {
+	margin-left: 16px;
+	list-style-type: none;
+}
+
 #map-tile fieldset, #map-style fieldset, #map-layers fieldset {
 	background-color: #FFF;
 }
