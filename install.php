@@ -239,7 +239,7 @@ echo 'Database' . PHP_EOL;
 echo 'Geef op welke database door fietsviewer gebruikt wordt.' . PHP_EOL;
 echo 'Als deze niet bestaat, zal verderop geprobeerd worden deze aan te maken.' . PHP_EOL;
 echo ' 1. Gebruik standaard (`fietsviewer`)' . PHP_EOL;
-echo ' 2. Aangepast serveradres opgeven' . PHP_EOL;
+echo ' 2. Aangepaste database opgeven' . PHP_EOL;
 echo 'Geef keuze op, gevolgd door enter:';
 $input = cli_input();
 
@@ -248,8 +248,8 @@ if ($input == '1') {
 }
 elseif ($input == '2') {
 	echo PHP_EOL;
-	echo 'Aangepast serveradres' . PHP_EOL;
-	echo 'Geef serveradres op:';
+	echo 'Aangepaste database' . PHP_EOL;
+	echo 'Geef database op:';
 	$database_database = cli_input();
 }
 else {
@@ -508,6 +508,9 @@ PRIMARY KEY (`id`)
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
+$qry[] = "ALTER TABLE `organisations` 
+ADD `abbr` VARCHAR(32) NOT NULL";
+
 $qry[] = "INSERT INTO `organisations`
 (`id`, `name`, `abbr`) 
 VALUES
@@ -557,10 +560,10 @@ FOREIGN KEY (`organisation_id`) REFERENCES `organisations` (`id`)
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
-$qry[] = "INSERT INTO `organisation_prefixes` 
-	(`id`, `organisation_id`, `prefix`)
+/*$qry[] = "INSERT INTO `organisation_prefixes` 
+	(`id`, `organisation_id`, `prefix`, `name`)
 	VALUES
-	(1, 1, 'SYS01')";
+	(1, 1, 'SYS01', 'system default dataset')";*/
 
 $qry[] = "CREATE TABLE `upload_queue` (
 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -613,15 +616,13 @@ FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ENGINE = 'InnoDB'
 COLLATE 'utf8_general_ci'";
 
-$qry[] = "ALTER TABLE `organisations` 
-ADD `abbr` VARCHAR(32) NOT NULL";
-
 $qry[] = "ALTER TABLE `request_queue` 
 ADD `send_email` BOOLEAN NOT NULL DEFAULT 0 AFTER `priority`";
 
 $qry[] = "ALTER TABLE `request_queue` 
 ADD `worker` VARCHAR(32) NOT NULL AFTER `name`";
 
+//TODO: this does not match regex @660
 $qry[] = "UPDATE `organisations` 
 SET `abbr` = 'SYS'
 WHERE `abbr` IS NULL";
@@ -730,9 +731,9 @@ include('password_compat/lib/password.php');
 $password = password_hash('admin', PASSWORD_DEFAULT);
 //insert into db
 $qry = "INSERT INTO `users`
-(`username`, `password`, `accesslevel`, `organisation_id`) 
+(`username`, `password`, `email`, `accesslevel`, `organisation_id`) 
 VALUES
-('admin', '".$password."', 999, 1)";
+('admin', '".$password."', 'user@example.com', 255, 1)";
 $res = @mysqli_query($db['link'], $qry);
 
 if ($res == TRUE) {
