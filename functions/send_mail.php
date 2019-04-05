@@ -24,16 +24,17 @@
 */
 
 function send_mail($to, $subject, $message) {
-    require_once 'PHPMailer/src/PHPmailer.php';
+    require_once 'PHPMailer/src/PHPMailer.php';
 	require_once 'PHPMailer/src/SMTP.php';
 	require_once 'PHPMailer/src/Exception.php';
     $mail = new PHPMailer\PHPMailer\PHPMailer();
     if (file_exists('mailconfig.inc.php')) {
-        require_once 'mailconfig.inc.php';
+        require 'mailconfig.inc.php';
     }
     else {
         return FALSE;
     }
+    
     //setup smtp
     if ($cfg['mail']['mailer'] == 'smtp') {
         $mail->isSMTP();
