@@ -133,7 +133,6 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit') && accesslevelcheck('users
         $data['phone'] = $_POST['phone'];
         $data['accesslevel'] = $_POST['accesslevel'];
         $data['organisation_id'] = $_POST['organisation_id'];
-        $data['password'] = $_POST['password'];
         //check fields
         if (empty($data['username'])) {
             //name is empty
@@ -171,11 +170,13 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit') && accesslevelcheck('users
         if ($store_success === TRUE) {
             if (!is_numeric($data['id'])) {
                 //insert new
+                //TODO: initial password should be something better than the current time; it should not work for login, but it's better to do this properly
                 $qry = "INSERT INTO `users`
                 SET
                 `username` = '" . mysqli_real_escape_string($db['link'], $data['username']) . "', 
                 `name` = '" . mysqli_real_escape_string($db['link'], $data['name']) . "', 
                 `email` = '" . mysqli_real_escape_string($db['link'], $data['email']) . "', 
+                `password` = '" . mysqli_real_escape_string($db['link'], time()) . "', 
                 `phone` = '" . mysqli_real_escape_string($db['link'], $data['phone']) . "', 
                 `accesslevel` = '" . mysqli_real_escape_string($db['link'], $data['accesslevel']) . "', 
                 `organisation_id` = '" . mysqli_real_escape_string($db['link'], $data['organisation_id']) . "'";
