@@ -163,7 +163,7 @@ function initMap() {
 	tileLayerOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(map);
-	tileLayerTf = L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
+	tileLayerTf = L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=423cd178822a4d178e961233ebb95dcf', {
 		attribution: 'Maps &copy; <a href="http://www.thunderforest.com">Thunderforest</a>, Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 	}).addTo(map);
 	//add tile layer

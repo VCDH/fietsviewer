@@ -152,9 +152,9 @@ if (mysqli_num_rows($res)) {
             require_once 'functions/send_mail.php';
             //prepare message
             $to = $user_details['email'];
-            //TODO: this doesn't work
             $url_base = file_get_contents('url_base');
-            $request_url = $url_base . '/result.php?id=' . $data['id'];
+            //TODO: check if url_base has trailing slash and add one conditionally
+            $request_url = $url_base . '/report.php?id=' . $data['id'];
             $subject = $cfg['mail']['subject']['request_done'];
             $message = $cfg['mail']['message']['request_done'];
             $message = str_replace(array('{{NAME}}', '{{REQUEST_NAME}}', '{{URL}}'), array(htmlspecialchars($user_details['name']), htmlspecialchars($data['name']), $request_url), $message);
