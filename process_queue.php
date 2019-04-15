@@ -1,7 +1,7 @@
 <?php
 /*
  	fietsviewer - grafische weergave van fietsdata
-    Copyright (C) 2018 Gemeente Den Haag, Netherlands
+    Copyright (C) 2018-2019 Gemeente Den Haag, Netherlands
     Developed by Jasper Vries
  
     This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,15 @@
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 require_once 'functions/csv_functions.php';
+require_once 'functions/log.php';
+
 
 /*
 * This script processes the file queue. It should be called periodically, e.g. via cron or some other means
 * It is safeguarded against parallel execution, so it is fine to call it every minute
 */
 
+write_log('script start');
 $runningfile = substr($_SERVER['SCRIPT_NAME'], strrpos($_SERVER['SCRIPT_NAME'], '/'), strrpos($_SERVER['SCRIPT_NAME'], '.') - strlen($_SERVER['SCRIPT_NAME'])) . '.running';
 $timeout = 1800; //seconds
 $tmp_data_file = 'tmp_data.csv';
@@ -40,6 +43,7 @@ set_time_limit(0);
 if (is_file($runningfile)) {
     $lastchange = file_get_contents($runningfile);
     if (!is_numeric($lastchange) || ((time() - $lastchange) > $timeout)) {
+        write_log('already running', 1);
         exit;
     }
 }
@@ -65,6 +69,7 @@ update_running_file();
 * returns an array with detailed status information on completion array( (bool) $success, (int) $num_lines_skipped, (array) $detailed_error_info)
 */
 function process_uploaded_file($file, $format, $prefix, $dataset_id) {
+    write_log('process uploaded file ' . $file, 1);
     //open file
     $handle = fopen($file, 'rb');
     if ($handle == FALSE) {
@@ -387,13 +392,22 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
                 `method` = '" . mysqli_real_escape_string($db['link'], $location_details[$line[$cols['mst']['location_id']]]['method']) . "',
                 `id` = LAST_INSERT_ID(`id`)";
                 mysqli_query($db['link'], $qry);
+                if (mysqli_error($db['link'])) {
+                    write_log($qry, 1);
+                    write_log(mysqli_error($db['link']), 1);
+                }
                 $insert_id = mysqli_insert_id($db['link']);
+
             }
             //otherwise get existing database ID
             else {
                 $qry = "SELECT `id` FROM `" . $db_table_mst . "`
                 WHERE `location_id` = '" . mysqli_real_escape_string($db['link'], $line[$cols['mst']['location_id']]) . "'";
                 $res = mysqli_query($db['link'], $qry);
+                if (mysqli_error($db['link'])) {
+                    write_log($qry, 1);
+                    write_log(mysqli_error($db['link']), 1);
+                }
                 if (mysqli_num_rows($res)) {
                     $insert_id = mysqli_fetch_row($res);
                     $insert_id = $insert_id[0];
@@ -499,6 +513,8 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
     $mysqli_error = mysqli_error($db['link']);
     if (!empty($mysqli_error)) {
         $errors[] = $mysqli_error;
+        write_log($qry, 1);
+        write_log($mysqli_error, 1);
     }
     //return status
     return($errors);
@@ -521,6 +537,7 @@ $res = mysqli_query($db['link'], $qry);
 if (mysqli_num_rows($res)) {
     $row = mysqli_fetch_row($res);
     update_running_file();
+    write_log('processing ID ' . $row[0]);
     $process_time = time();
     //update processed time to indicate processing has started
     $qry2 = "UPDATE `upload_queue`
@@ -528,6 +545,10 @@ if (mysqli_num_rows($res)) {
     `date_lastchange` = NOW()
     WHERE `id` = ".$row[0];
     mysqli_query($db['link'], $qry2);
+    if (mysqli_error($db['link'])) {
+        write_log($qry2, 1);
+        write_log(mysqli_error($db['link']), 1);
+    }
 
     //process and import uploaded file to importable format
     $file = $cfg['upload']['dir'];
@@ -549,13 +570,22 @@ if (mysqli_num_rows($res)) {
     ((!empty($output)) ? ", `process_error` = '" . $output . "' " : '') .
     "WHERE `id` = ".$row[0];
     mysqli_query($db['link'], $qry2);
+    if (mysqli_error($db['link'])) {
+        write_log($qry2, 1);
+        write_log(mysqli_error($db['link']), 1);
+    }
     //unlink temporary file
-    unlink($file);
+    if ($cfg['logging']['keepuploads'] !== TRUE) {
+        unlink($file);
+        write_log('removed file ' . $file, 1);
+    }
     //restart script after this
+    write_log('script restart required', 1);
     $restart = TRUE;
 }
 else {
     //no job, so terminate script
+    write_log('script ending', 1);
     $restart = FALSE;
 }
 
@@ -565,6 +595,7 @@ else {
 unlink($runningfile);
 //restart script
 if ($restart == TRUE) {
+    write_log('attempting to restart script', 1);
     //script cannot run in loop because of functions that may need to be redefined, so it must me restarted for each job in the queue
     require_once 'functions/execInBackground.php';
     sleep(2); //to allow for disk IO

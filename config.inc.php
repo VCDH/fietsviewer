@@ -10,4 +10,9 @@ $cfg['account']['username_regex'] = '/[a-z0-9]+([@-_.]+[a-z0-9]+)*/i'; //regex t
 $cfg['account']['email_regex'] = '/.+@.+\.[a-z]{2}/i'; //regex that an e-mail address must pass; by default just a basic check for @ and a tld
 
 $cfg['hypervisor']['user_activated'] = TRUE; //set whether The Hypervisor is called after specific user actions. If you disable this, you must call The Hypervisor periodically via a cronjob to ensure that background tasks (processing data) are still executed. If you do run a cronjob, it's not required to change this setting.
+
+$cfg['logging']['keepuploads'] = FALSE; //keep uploaded data files for debugging purposes
+$cfg['logging']['verbose'] = FALSE; //enable verbose logging of system actions
+$cfg['logging']['logfile'] = 'log.txt'; //filename of logfile, relative to main dir
+$cfg['logging']['maxlogfilesize'] = 10000000; //maximum filesize of logfile in bytes; overflow will be truncateds
 ?>
