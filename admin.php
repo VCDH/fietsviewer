@@ -145,7 +145,7 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit') && accesslevelcheck('users
         else {
             //check if username doesn't exist
             $qry = "SELECT `username` FROM `users` 
-            WHERE `username` = '" . mysqli_real_escape_string($db['link'], $data['name']) . "'
+            WHERE `username` = '" . mysqli_real_escape_string($db['link'], $data['username']) . "'
             AND `id` != '" . mysqli_real_escape_string($db['link'], $data['id']) . "'
             LIMIT 1";
             $res = mysqli_query($db['link'], $qry);
