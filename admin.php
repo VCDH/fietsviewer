@@ -133,6 +133,9 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit') && accesslevelcheck('users
         $data['phone'] = $_POST['phone'];
         $data['accesslevel'] = $_POST['accesslevel'];
         $data['organisation_id'] = $_POST['organisation_id'];
+        if ($_POST['password'] == 'email') {
+            $data['password'] = 'email';
+        }
         //check fields
         if (empty($data['username'])) {
             //name is empty
@@ -201,7 +204,14 @@ if (($_GET['p'] == 'users') && ($_GET['a'] == 'edit') && accesslevelcheck('users
         if ($data['password'] == 'email') {
             //send new password
             require_once 'functions/reset_password.php';
-            reset_password($data['username']);
+            //new user
+            if (!is_numeric($data['id'])) {
+                reset_password($data['username'], TRUE);
+            }
+            //existing user
+            else {
+                reset_password($data['username']);
+            }
         }
     }
 }
