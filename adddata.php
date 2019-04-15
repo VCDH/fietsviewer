@@ -96,6 +96,54 @@ function store_uploaded_file($file) {
     }
 }
 
+//function to convert PHP unit value to bytes
+function ini_to_bytes($val) {
+    $units = 'bkmgtpezy';
+    //find unit
+    if (!preg_match('/^(\d+)(['.$units.']){1}$/i', $val, $unit)) {
+        $unit = array(
+            $val,
+            preg_replace('/[^\d]/', '', $val),
+            'b'
+        );
+    }
+    return (int) $unit[1] * pow(1024, strpos($units, strtolower($unit[2])));
+}
+//function to convert bytes to human readable
+function bytes_to_string($val) {
+    $units = array('bytes', 'kiB', 'MiB', 'GiB', 'TiB');
+    foreach ($units as $i => $unit) {
+        if (($val < 1000) || ($i == count($units) - 1)) {
+            return number_format($val, 2, ',', '.') . ' ' . $units[$i];
+        }
+        else {
+            $val = $val / 1024;
+        }
+    }
+}
+
+/*
+* function to get max upload size in bytes or human-readable
+* returns (int) in bytes or (string) with a value less than thousand and a unit
+*/
+function get_max_upload_size($returnasstring = FALSE, $postonly = FALSE) {
+
+    //get max filesize from ini post_max_size and upload_max_filesize in bytes
+    if ($postonly == TRUE) {
+        $max_size = ini_to_bytes(ini_get('post_max_size'));
+    }
+    else {
+        $max_size = min(ini_to_bytes(ini_get('post_max_size')), ini_to_bytes(ini_get('upload_max_filesize')));
+    }
+    //decide return format
+    if ($returnasstring != TRUE) {
+        return $max_size;
+    }
+    else {
+        return bytes_to_string($max_size);
+    }
+}
+
 /*
 * process upload
 */
@@ -172,7 +220,7 @@ if (!empty($_FILES)) {
     
     <h2>handmatige upload</h2>
 
-    <p>Data kunnen handmatig worden toegevoegd via onderstaande uploadfunctie. Selecteer aan welke gegevensset de nieuwe data moet worden toegevoegd. Een gegevensset is een collectie van &eacute;&eacute;n of meerdere datapunten die een bepaalde samenhang hebben (bijvoorbeeld door dezelfde organisatie met eenzelfde techniek ingewonnen). Selecteer daarna een bestand en klik op Upload. De bestandsindeling moet voldoen aan de specificatie zoals beschreven in de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>. De maximale bestandsgrootte is <?php echo ini_get('post_max_size'); ?>. Sluit de pagina niet voordat de upload voltooid is.</p>
+    <p>Data kunnen handmatig worden toegevoegd via onderstaande uploadfunctie. Selecteer aan welke gegevensset de nieuwe data moet worden toegevoegd. Een gegevensset is een collectie van &eacute;&eacute;n of meerdere datapunten die een bepaalde samenhang hebben (bijvoorbeeld door dezelfde organisatie met eenzelfde techniek ingewonnen). Selecteer daarna een bestand en klik op Upload. De bestandsindeling moet voldoen aan de specificatie zoals beschreven in de <a href="docs/interfacebeschrijving_import.html" class="ext" target="_blank">interfacebeschrijving</a>. De maximale bestandsgrootte is <?php echo get_max_upload_size(TRUE); ?>. Sluit de pagina niet voordat de upload voltooid is.</p>
     
     <form method="POST" enctype="multipart/form-data">
     
@@ -316,7 +364,7 @@ if (!empty($_FILES)) {
             <tr><th>URL</th><td><?php echo htmlspecialchars($_SERVER["REQUEST_SCHEME"] . '://' . substr($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SERVER_NAME'] . $_SERVER['SCRIPT_NAME'], '/'))) . '/api/add/'; ?></td></tr>
             <tr><th>gebruikersnaam</th><td><?php echo htmlspecialchars(getuserdata('username')); ?></td></tr>
             <tr><th>wachtwoord</th><td>(bekend bij gebruiker)</td></tr>
-            <tr><th>maximale POST grootte</th><td><?php echo ini_get('post_max_size'); ?></td></tr>
+            <tr><th>maximale POST grootte</th><td><?php echo get_max_upload_size(TRUE, TRUE) ?></td></tr>
             <tr><th>gegevensset</th><td><?php echo htmlspecialchars($data['name']); ?> <a href="admin.php?p=datasets">wijzigen</a></td></tr>
         </table>
         <p><b>Gegevensset</b>: via de API aangeleverde data worden opgeslagen in de gegevensset <i><?php echo htmlspecialchars($data['name']); ?></i>.</p>
