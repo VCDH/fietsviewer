@@ -31,7 +31,7 @@ require_once 'functions/log.php';
 
 write_log('script start');
 $runningfile = substr($_SERVER['SCRIPT_NAME'], strrpos($_SERVER['SCRIPT_NAME'], '/'), strrpos($_SERVER['SCRIPT_NAME'], '.') - strlen($_SERVER['SCRIPT_NAME'])) . '.running';
-$timeout = 1800; //seconds
+$timeout = 1800; //seconds; 1800 = 30 min
 $tmp_data_file = 'tmp_data.csv';
 set_time_limit(0);
 
@@ -40,9 +40,9 @@ set_time_limit(0);
 * check if script is already running and terminate
 * allowed to run if there is no running file or if there is no activity for the last $timeout minutes
 */
-if (is_file($runningfile)) {
+if (file_exists($runningfile)) {
     $lastchange = file_get_contents($runningfile);
-    if (!is_numeric($lastchange) || ((time() - $lastchange) > $timeout)) {
+    if (is_numeric($lastchange) && ((time() - $lastchange) <= $timeout)) {
         write_log('already running', 1);
         exit;
     }
@@ -56,11 +56,18 @@ function update_running_file() {
     //exit self if no activity for timeout period
     if ((time() - $lastrun) > $timeout) {
         unlink($runningfile);
+        write_log('timeout');
         exit;
     }
     //otherwise update running file and lastrun time
     $lastrun = time();
+    write_log('running file updated with value ' . $lastrun, 1);
     file_put_contents($runningfile, $lastrun);
+    //check if running file is written
+    if (!file_exists($runningfile)) {
+        write_log('did not write runningfile', 1);
+        exit;
+    }
 }
 update_running_file();
 
@@ -536,7 +543,6 @@ LIMIT 1";
 $res = mysqli_query($db['link'], $qry);
 if (mysqli_num_rows($res)) {
     $row = mysqli_fetch_row($res);
-    update_running_file();
     write_log('processing ID ' . $row[0]);
     $process_time = time();
     //update processed time to indicate processing has started

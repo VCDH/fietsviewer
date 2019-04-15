@@ -18,6 +18,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+require '../../functions/log.php';
+
 //process api request
 $json = array('FietsViewerRespons' => array('statusCode' => 500, 'statusText' => 'Internal Server Error'));
 
@@ -142,6 +144,7 @@ if ($json['FietsViewerRespons']['statusCode'] == 500) {
                     if ($cfg['hypervisor']['user_activated'] == TRUE) {
                         include_once 'hypervisor.php';
                     }
+                    write_log('new file added trough api: ' . $md5, 1);
                 }
                 else {
                     $json['FietsViewerRespons']['statusDesc'] = 'Cannot add request to database';
