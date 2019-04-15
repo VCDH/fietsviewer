@@ -26,7 +26,8 @@
 function send_mail($to, $subject, $message) {
     require_once 'PHPMailer/src/PHPMailer.php';
 	require_once 'PHPMailer/src/SMTP.php';
-	require_once 'PHPMailer/src/Exception.php';
+    require_once 'PHPMailer/src/Exception.php';
+    require_once 'functions/log.php';
     $mail = new PHPMailer\PHPMailer\PHPMailer();
     if (file_exists('mailconfig.inc.php')) {
         require 'mailconfig.inc.php';
@@ -57,6 +58,12 @@ function send_mail($to, $subject, $message) {
     $mail->Body    = $message;
     $mail->AltBody = $mail->html2text($message);
     //send mail
-    return $mail->send();
+    $res = $mail->send();
+    if ($res === TRUE) {
+        write_log('mail sent to ' . $to . 'subject ' . $subject, 1);
+    }
+    else {
+        write_log('mail failed to ' . $to . 'subject ' . $subject . 'error ' . $mail->ErrorInfo);
+    }
 }
 ?>
