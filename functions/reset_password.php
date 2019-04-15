@@ -22,7 +22,7 @@
 * send new password
 * should always return TRUE unless config is missing
 */
-function reset_password($username) {
+function reset_password($username, $newuser = FALSE) {
 	require('dbconnect.inc.php');
 	require('config.inc.php');
 	require_once('functions/get_token.php');
@@ -52,10 +52,18 @@ function reset_password($username) {
 		mysqli_query($db['link'], $sql);
 		//prepare email
 		$to = $data['email'];
-		$subject = $cfg['mail']['subject']['lostpass'];
-		$message = $cfg['mail']['message']['lostpass'];
+		//new user
+		if ($newuser == TRUE) {
+			$subject = $cfg['mail']['subject']['newuser'];
+			$message = $cfg['mail']['message']['newuser'];
+		}
+		else {
+			$subject = $cfg['mail']['subject']['lostpass'];
+			$message = $cfg['mail']['message']['lostpass'];
+		}
 		//$subject = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data[1]), $new_password), $subject);
-		$message = str_replace(array('{{NAME}}', '{{PASSWORD}}'), array(htmlspecialchars($data['name']), $new_password), $message);
+		$url_base = $_SERVER["REQUEST_SCHEME"] . '://' . $_SERVER['SERVER_NAME'] . dirname($_SERVER["SCRIPT_NAME"]);
+		$message = str_replace(array('{{NAME}}', '{{USERNAME}}', '{{PASSWORD}}', '{{SITE_URL}}'), array(htmlspecialchars($data['name']), $username, $new_password, $url_base), $message);
 		//send email
 		send_mail($to, $subject, $message);
 	}

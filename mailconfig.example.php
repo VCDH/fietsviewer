@@ -22,7 +22,10 @@ $cfg['mail']['SMTPSecure'] = 'tls';                            // Enable TLS enc
 $cfg['mail']['Port'] = 587;                                    // TCP port to connect to
 
 $cfg['mail']['subject']['lostpass'] = 'fietsviewer wachtwoord';
-$cfg['mail']['message']['lostpass'] = '<p>Beste {{NAME}},</p><p>Je nieuwe wachtwoord voor fietsviewer is:<br>{{PASSWORD}}</p><p>Met vriendelijke groeten,<br>fietsviewer</p>';
+$cfg['mail']['message']['lostpass'] = '<p>Beste {{NAME}},</p><p>Je nieuwe wachtwoord voor <a href="{{SITE_URL}}">fietsviewer</a> is:<br>{{PASSWORD}}</p><p>Met vriendelijke groeten,<br>fietsviewer</p>';
+
+$cfg['mail']['subject']['newuser'] = 'fietsviewer account';
+$cfg['mail']['message']['newuser'] = '<p>Beste {{NAME}},</p><p>Er is een account voor je gemaakt voor <a href="{{SITE_URL}}">fietsviewer</a>. Je kunt inloggen met onderstaande gegevens.</p><p>gebruikersnaam: {{USERNAME}}<br>wachtwoord: {{PASSWORD}}</p><p>Met vriendelijke groeten,<br>fietsviewer</p>';
 
 //TODO: auto upgrade path for mailconfig (and possibly other config files?) from install.php
 $cfg['mail']['subject']['request_done'] = 'fietsviewer analyse gereed';
