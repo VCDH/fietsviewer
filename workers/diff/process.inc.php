@@ -88,6 +88,10 @@ function worker_process($request_details) {
             AND `id` IN (" .  $qry_ids . ")
             GROUP BY " . $groupby;
             $res = mysqli_query($db['link'], $qry);
+            if (mysqli_error($db['link'])) {
+                write_log($qry);
+                write_log(mysqli_error($db['link']));
+            }
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 $bin = $row[3]; //always a single bin
@@ -106,6 +110,10 @@ function worker_process($request_details) {
             AND `id` IN (" .  $qry_ids . ")
             GROUP BY " . $groupby;
             $res = mysqli_query($db['link'], $qry);
+            if (mysqli_error($db['link'])) {
+                write_log($qry);
+                write_log(mysqli_error($db['link']));
+            }
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 $bin = $row[5]; //always a single bin
@@ -130,6 +138,10 @@ function worker_process($request_details) {
             AND `id` IN (" .  $qry_ids . ")
             GROUP BY " . $groupby;
             $res = mysqli_query($db['link'], $qry);
+            if (mysqli_error($db['link'])) {
+                write_log($qry);
+                write_log(mysqli_error($db['link']));
+            }
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 $bin = $row[3]; //always a single bin
@@ -147,7 +159,10 @@ function worker_process($request_details) {
             AND DAYOFWEEK(`datetime_from`) IN (" . join(', ', $dayofweek_2) .")
             AND `id` IN (" .  $qry_ids . ")
             GROUP BY " . $groupby;
-            $res = mysqli_query($db['link'], $qry);
+            $res = mysqli_query($db['link'], $qry);if (mysqli_error($db['link'])) {
+                write_log($qry);
+                write_log(mysqli_error($db['link']));
+            }
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 $bin = $row[5]; //always a single bin

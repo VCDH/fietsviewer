@@ -21,12 +21,14 @@
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 require_once 'functions/csv_functions.php';
+require_once 'functions/log.php';
 
 /*
 * This script processes the file queue. It should be called periodically, e.g. via cron or some other means
 * It is safeguarded against parallel execution, so it is fine to call it every minute
 */
 
+write_log('script start');
 $runningfile = substr($_SERVER['SCRIPT_NAME'], strrpos($_SERVER['SCRIPT_NAME'], '/'), strrpos($_SERVER['SCRIPT_NAME'], '.') - strlen($_SERVER['SCRIPT_NAME'])) . '.running';
 $timeout = 1800; //seconds
 $tmp_data_file = 'tmp_data.csv';
@@ -39,7 +41,8 @@ set_time_limit(0);
 */
 if (is_file($runningfile)) {
     $lastchange = file_get_contents($runningfile);
-    if (!is_numeric($lastchange) || ((time() - $lastchange) > $timeout)) {
+    if (is_numeric($lastchange) && ((time() - $lastchange) <= $timeout)) {
+        write_log('already running', 1);
         exit;
     }
 }
@@ -52,6 +55,7 @@ function update_running_file() {
     //exit self if no activity for timeout period
     if ((time() - $lastrun) > $timeout) {
         unlink($runningfile);
+        write_log('timeout');
         exit;
     }
     //otherwise update running file and lastrun time
@@ -85,6 +89,10 @@ foreach ($priority_shift as $ps_this) {
     AND `processed` = 0
     AND `process_time` IS NULL";
     mysqli_query($db['link'], $qry);
+    if (mysqli_error($db['link'])) {
+        write_log($qry, 1);
+        write_log(mysqli_error($db['link']), 1);
+    }
 }
 //select next job from queue
 //selected one by one in order to respect priorities
@@ -132,6 +140,10 @@ if (mysqli_num_rows($res)) {
     `date_create` = NOW(),
     `date_lastchange` = NOW()";
     mysqli_query($db['link'], $qry);
+    if (mysqli_error($db['link'])) {
+        write_log($qry, 1);
+        write_log(mysqli_error($db['link']), 1);
+    }
     //update queue
     $process_time = time() - $process_time;
     $qry = "UPDATE `request_queue`
@@ -176,6 +188,7 @@ else {
 unlink($runningfile);
 //restart script
 if ($restart == TRUE) {
+    write_log('attempting to restart script', 1);
     //script cannot run in loop because of functions that may need to be redefined, so it must me restarted for each job in the queue
     require_once 'functions/execInBackground.php';
     sleep(2); //to allow for disk IO

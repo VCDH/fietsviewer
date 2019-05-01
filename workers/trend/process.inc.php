@@ -79,6 +79,10 @@ function worker_process($request_details) {
             AND `id` IN (" .  $ids . ")
             GROUP BY " . $groupby;
             $res = mysqli_query($db['link'], $qry);
+            if (mysqli_error($db['link'])) {
+                write_log($qry);
+                write_log(mysqli_error($db['link']));
+            }
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 switch ($request_details['aggregate']) {
@@ -104,6 +108,10 @@ function worker_process($request_details) {
             AND `id` IN (" .  $ids . ")
             GROUP BY " . $groupby;
             $res = mysqli_query($db['link'], $qry);
+            if (mysqli_error($db['link'])) {
+                write_log($qry);
+                write_log(mysqli_error($db['link']));
+            }
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 switch ($request_details['aggregate']) {
