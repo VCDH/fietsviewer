@@ -72,7 +72,7 @@ function worker_process($request_details) {
             $ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
             $ids = join(',', $ids);
                 
-            $qry = "SELECT `id`, SUM(`flow_pos`), SUM(`flow_neg`), " . $groupby . " FROM `data_flow`
+            $qry = "SELECT '1', SUM(`flow_pos`), SUM(`flow_neg`), " . $groupby . " FROM `data_flow`
             WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-end']) . "'
             AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-end']))) . "'
             AND DAYOFWEEK(`datetime_from`) IN (" . join(', ', $dayofweek) .")
@@ -101,7 +101,7 @@ function worker_process($request_details) {
             $ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
             $ids = join(',', $ids);
                 
-            $qry = "SELECT `id`, AVG(`avg_waittime`), MAX(`max_waittime`), SUM(`timeloss`), AVG(`greenarrival`), " . $groupby . " FROM `data_waittime`
+            $qry = "SELECT '1', AVG(`avg_waittime`), MAX(`max_waittime`), SUM(`timeloss`), AVG(`greenarrival`), " . $groupby . " FROM `data_waittime`
             WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-end']) . "'
             AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-end']))) . "'
             AND DAYOFWEEK(`datetime_from`) IN (" . join(', ', $dayofweek) .")
