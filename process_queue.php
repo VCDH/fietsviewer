@@ -32,7 +32,7 @@ require_once 'functions/log.php';
 write_log('script start');
 $runningfile = substr($_SERVER['SCRIPT_NAME'], strrpos($_SERVER['SCRIPT_NAME'], '/'), strrpos($_SERVER['SCRIPT_NAME'], '.') - strlen($_SERVER['SCRIPT_NAME'])) . '.running';
 $timeout = 1800; //seconds; 1800 = 30 min
-$tmp_data_file = 'tmp_data.csv';
+$tmp_data_file = getcwd() . '/tmp_data.csv';
 set_time_limit(0);
 
 /*
@@ -515,12 +515,27 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
         `greenarrival` = NULLIF(@greenarrival, ''),
         `quality` = NULLIF(@quality, '')";
     }
-    mysqli_query($db['link'], $qry);
-    $mysqli_error = mysqli_error($db['link']);
-    if (!empty($mysqli_error)) {
-        $errors[] = $mysqli_error;
-        write_log($qry, 1);
-        write_log($mysqli_error, 1);
+    if ($db['load_data_shell'] !== TRUE) {
+        //process through PHP
+        mysqli_query($db['link'], $qry);
+        $mysqli_error = mysqli_error($db['link']);
+        if (!empty($mysqli_error)) {
+            $errors[] = $mysqli_error;
+            write_log($qry, 1);
+            write_log($mysqli_error, 1);
+        }
+    }
+    else {
+        //process through shell
+        $qry = str_replace(array('`', '"'), array('\`', '\"'), $qry);
+        $exec = 'mysql -u ' . $db['user'] . ' -p' . $db['pass'] . ' ' . $db['database'] . ' -e "' . $qry . ';" 2>&1';
+        exec($exec, $exec_res, $exec_stat);
+        if ($exec_stat != 0) {
+            $mysqli_error = join('; ', $exec_res);
+            $errors[] = $mysqli_error;
+            write_log($qry, 1);
+            write_log($mysqli_error, 1);
+        }
     }
     //recalculate measurement site overall quality
     foreach ($location_ids as $location_id) {

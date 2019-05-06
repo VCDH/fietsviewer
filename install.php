@@ -24,6 +24,7 @@ $database_server = 'localhost';
 $database_user = '';
 $database_password = '';
 $database_database = 'fietsviewer';
+$database_load_data_shell = 'FALSE';
 
 //check if cli
 function detect_cli() {
@@ -144,7 +145,7 @@ if (file_exists($config_file_name)) {
 	$handle = fopen($config_file_name, 'rb');
 	while ($line = fgets($handle)) {
 		//match line
-		if (preg_match('/.*\$db\[\'(host|user|pass|database)\'\]\h*=\h*\'(.*)\';/U', $line, $matches) === 1) {
+		if (preg_match('/.*\$db\[\'(host|user|pass|database|load_data_shell)\'\]\h*=\h*\'?(.*)\'?;/U', $line, $matches) === 1) {
 			if ($matches[1] == 'host') {
 				$database_server = $matches[2];
 			}
@@ -156,6 +157,9 @@ if (file_exists($config_file_name)) {
 			}
 			elseif ($matches[1] == 'database') {
 				$database_database = $matches[2];
+			}
+			elseif ($matches[1] == 'load_data_shell') {
+				$database_load_data_shell = $matches[2];
 			}
 		}
 	}
@@ -385,6 +389,7 @@ $db[\'host\'] = \'' . $database_server . '\';
 $db[\'user\'] = \'' . $database_user . '\';
 $db[\'pass\'] = \'' . $database_password . '\';
 $db[\'database\'] = \'' . $database_database . '\';
+$db[\'load_data_shell\'] = \'' . $database_load_data_shell . '\';
 ?>';
 file_put_contents($config_file_name, $config);
 echo 'Configuratiebestand is geinstalleerd naar ' . $config_file_name . PHP_EOL;

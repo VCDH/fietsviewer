@@ -64,17 +64,22 @@ opdrachtregel om het installatieprogramma te doorlopen. Hou de
 database-credentials bij de hand, hier wordt tijdens de installatie om gevraagd.
 
 Bij het doorlopen van het programma wordt het bestand dbconfig.inc.php 
-aangemaakt. Dit bestand is hierna desgewenst handmatig aan te passen, maar wordt 
-overschreven wanneer het installatieprogramma opnieuw wordt uitgevoerd.
-Overige configuratie staat in config.inc.php. Deze hoeft normaal gesproken niet 
-aangepast te worden en is daardoor geen onderdeel van het installatieprogramma.
+aangemaakt. Dit bestand is hierna desgewenst handmatig aan te passen. Bij 
+opnieuw doorlopen van het installatieprogramma wordt de databaseconfiguratie 
+ingelezen en indien gewenst behouden.
+Voor het geval er problemen zijn met het uitvoeren van de LOAD DATA LOCAL INFILE 
+MySQL query in process_queue.php (typische symptomen: geen foutmelding, maar 
+ook geen data ingelezen) is er de mogelijkheid om dit commando buiten PHP via 
+een shell-commando uit te voeren. Stel hiervoor in dbconfig.inc.php de waarde 
+van $db['load_data_shell'] in op TRUE.
 
 Om gebruikers een e-mail met hun wachtwoord te kunnen sturen dient 
 mailconfig.inc.php handmatig aangemaakt te worden. Hiervoor kan 
-mailconfig.example.php als voorbeeld gebruikt worden.
+mailconfig.example.php als voorbeeld gebruikt worden. Dit is nog geen onderdeel 
+van het installatieprogramma.
 
-Daarnaast worden een aantal algemene zaken geconfigureerd in config.inc.php. 
-Deze hoeven niet noodzakelijkerwijs aangepast te worden.
+Overige configuratie staat in config.inc.php. Deze hoeft normaal gesproken niet 
+aangepast te worden en is daardoor geen onderdeel van het installatieprogramma.
 
 
 ================================================================================
