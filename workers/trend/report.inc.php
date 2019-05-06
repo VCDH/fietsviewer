@@ -121,9 +121,9 @@ function randomColor() {
 
 <p><b>Toelichting bij de grafiek</b></p>
 <ul>
-    <li>fietsers: som van aantal fietsers in periode op tijdstip</li>
+    <li>fietsers: gemiddeld aantal fietsers per uur in periode op tijdstip</li>
     <li>gem wachttijd: gemiddelde wachtijd in periode op tijdstip</li>
     <li>max wachttijd: maximale wachttijd in periode op tijdstip</li>
-    <li>verliesminuten: som van verliesminuten in periode op tijdstip</li>
+    <li>verliesminuten: gemiddelde verliesminuten in periode op tijdstip</li>
     <li>groenaankomst: gemiddelde groenaankomst in periode op tijdstip</li>
 </ul>

@@ -118,3 +118,8 @@ function randomColor() {
     return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 </script>
+
+<p><b>Toelichting bij de grafiek</b></p>
+<ul>
+    <li>gemiddeld aantal fietsers per uur in periode op tijdstip</li>
+</ul>
