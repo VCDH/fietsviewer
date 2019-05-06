@@ -399,12 +399,11 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
                 `method` = '" . mysqli_real_escape_string($db['link'], $location_details[$line[$cols['mst']['location_id']]]['method']) . "',
                 `id` = LAST_INSERT_ID(`id`)";
                 mysqli_query($db['link'], $qry);
+                $insert_id = mysqli_insert_id($db['link']);
                 if (mysqli_error($db['link'])) {
                     write_log($qry, 1);
                     write_log(mysqli_error($db['link']), 1);
                 }
-                $insert_id = mysqli_insert_id($db['link']);
-
             }
             //otherwise get existing database ID
             else {
@@ -522,6 +521,36 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
         $errors[] = $mysqli_error;
         write_log($qry, 1);
         write_log($mysqli_error, 1);
+    }
+    //recalculate measurement site overall quality
+    foreach ($location_ids as $location_id) {
+        $qry = "SELECT AVG(`quality`) FROM ";
+        if ($format == 'dpf-flow') {
+            $qry .= '`data_flow`';
+        }
+        elseif ($format == 'dpf-rln') {
+            $qry .= '`data_rln`';
+        }
+        elseif ($format == 'dpf-waittime') {
+            $qry .= '`data_waittime`';
+        }
+        $qry .= " WHERE `id` = " . $location_id;
+        $res = mysqli_query($db['link'], $qry);
+        if (!empty($mysqli_error)) {
+            $errors[] = $mysqli_error;
+            write_log($qry, 1);
+            write_log($mysqli_error, 1);
+        }
+        $row = mysqli_fetch_row($res);
+        $qry = "UPDATE `" . $db_table_mst . "`
+        SET `quality` = '" . mysqli_real_escape_string($db['link'], round($row[0])) . "' 
+        WHERE `id` = " . $location_id;
+        mysqli_query($db['link'], $qry);
+        if (!empty($mysqli_error)) {
+            $errors[] = $mysqli_error;
+            write_log($qry, 1);
+            write_log($mysqli_error, 1);
+        }
     }
     //return status
     return($errors);
