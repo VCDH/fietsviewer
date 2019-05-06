@@ -463,7 +463,7 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
                     $line[$cols['data']['quality']]
                 );
             }
-            $fields = join(';', $fields) . PHP_EOL;
+            $fields = join(';', $fields) . "\n";
             fwrite($handle_data, $fields);
         }
         else {
@@ -480,7 +480,7 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             TERMINATED BY ';'
             OPTIONALLY ENCLOSED BY '\"'
         LINES
-            TERMINATED BY '" . PHP_EOL . "'
+            TERMINATED BY '\\n'
         (`id`, `datetime_from`, `datetime_to`, `flow_pos`, @flow_neg, @quality)
         SET
         `flow_neg` = NULLIF(@flow_neg, ''),
@@ -494,7 +494,7 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             TERMINATED BY ';'
             OPTIONALLY ENCLOSED BY '\"'
         LINES
-            TERMINATED BY '" . PHP_EOL . "'
+            TERMINATED BY '\\n'
         (`id`, `datetime_from`, `datetime_to`, `red_light_negation`, @quality)
         SET
         `quality` = NULLIF(@quality, '')";
@@ -507,7 +507,7 @@ function process_uploaded_file($file, $format, $prefix, $dataset_id) {
             TERMINATED BY ';'
             OPTIONALLY ENCLOSED BY '\"'
         LINES
-            TERMINATED BY '" . PHP_EOL . "'
+            TERMINATED BY '\\n'
         (`id`, `datetime_from`, `datetime_to`, `avg_waittime`, @max_waittime, @timeloss, @greenarrival, @quality)
         SET
         `max_waittime` = NULLIF(@max_waittime, ''),
