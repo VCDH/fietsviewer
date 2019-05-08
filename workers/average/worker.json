@@ -2,5 +2,8 @@
     "name": "Gemiddelde",
     "desc": "Een grafiek met gemiddelde waarden per meetpunt over de opgegeven periode",
     "layers": ["flow", "waittime"],
-    "periods": 1
+    "periods": 1,
+    "report": {
+        "type": "graph"
+    }
 }

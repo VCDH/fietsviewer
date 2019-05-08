@@ -26,6 +26,7 @@ Each worker contains:
 
 - worker.json
     specific configuration information for the worker, that is used by request.php, result.php and report.php.
+    report.type = "graph" indicates that a default Plotly.js graph will be drawn. process.inc.php must return a Plotly JSON Chart Schema compatible result.
 - process.inc.php
     script that processes the data from the database and provides the result to be stored in the reports table;
     it should only perform read-only access on the database;
@@ -40,7 +41,7 @@ Each worker contains:
     if the script defines other functions, it must do so in its own namespace, or as global functions with the name of the worker in the name of the function;
     data-availability is checked by the main result-processor and only qualifying markers are provided for the worker-process (`request_details` is modified accordingly).
 - report.inc.php
-    script that prepares display in report.php;
+    script that prepares a custom display in report.php (worker.json report.type = "custom");
     report.php will provide the contents of the return value (provided by the worker_process() function) from the database.
 
 Specific documentation for this should be provided at a later date.

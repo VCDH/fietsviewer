@@ -2,5 +2,9 @@
     "name": "Verschil",
     "desc": "Het verschil tussen twee perioden, de meetlocaties worden per periode gesommeerd",
     "layers": ["flow", "waittime"],
-    "periods": 2
+    "periods": 2,
+    "report": {
+        "type": "graph",
+        "desc": "<ul><li>fietsers: som van aantal fietsers in periode op tijdstip</li><li>gem wachttijd: gemiddelde wachtijd in periode op tijdstip</li><li>max wachttijd: maximale wachttijd in periode op tijdstip</li><li>verliesminuten: som van verliesminuten in periode op tijdstip</li><li>groenaankomst: gemiddelde groenaankomst in periode op tijdstip</li></ul>"
+    }
 }

@@ -2,5 +2,9 @@
     "name": "Trend",
     "desc": "Het verloop in de tijd over de som van de geselecteerde meetpunten (\"fietsindex\")",
     "layers": ["flow"],
-    "periods": 1
+    "periods": 1,
+    "report": {
+        "type": "graph",
+        "desc": "<ul><li>fietsers: gemiddeld aantal fietsers per uur in periode op tijdstip</li><li>gem wachttijd: gemiddelde wachtijd in periode op tijdstip</li><li>max wachttijd: maximale wachttijd in periode op tijdstip</li><li>verliesminuten: gemiddelde verliesminuten in periode op tijdstip</li><li>groenaankomst: gemiddelde groenaankomst in periode op tijdstip</li></ul>"
+    }
 }

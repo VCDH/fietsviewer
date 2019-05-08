@@ -51,8 +51,9 @@ function worker_process($request_details) {
             }
         }
     }
-    //build time bins
-    $result = array();
+
+    //build Plotly JSON Chart Schema
+    $json = array('data' => array(), 'layout' => array());
 
     //build query
     $groupby = '';
@@ -71,7 +72,7 @@ function worker_process($request_details) {
         if ($layer == 'flow') {
             $ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
             $ids = join(',', $ids);
-                
+            
             $qry = "SELECT '1', AVG(`flow_pos`), AVG(`flow_neg`), " . $groupby . " FROM `data_flow`
             WHERE DATE(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-start']) . "' AND '" . mysqli_real_escape_string($db['link'], $request_details['period']['1']['date-end']) . "'
             AND TIME(`datetime_from`) BETWEEN '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-start']))) . "' AND '" . mysqli_real_escape_string($db['link'], date('H:i:s', strtotime($request_details['period']['1']['time-end']))) . "'
@@ -83,19 +84,28 @@ function worker_process($request_details) {
                 write_log($qry);
                 write_log(mysqli_error($db['link']));
             }
+            $flow_data = array('x' => array(), 'y' => array());
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 switch ($request_details['aggregate']) {
                     //case 'h14' : $timestep = 15 * 60; break;
                     //case 'h12' : $timestep = 30 * 60; break;
-                    case 'h' : 
+                    case 'h' : $bin = $row[3] . ' ' . str_pad($row[4], 2, '0', STR_PAD_LEFT); break;
                     case 'm' : 
-                    case 'q' : $bin = $row[3].str_pad($row[4], 2, '0', STR_PAD_LEFT); break;
+                    case 'q' : $bin = $row[3] . '-' . str_pad($row[4], 2, '0', STR_PAD_LEFT); break;
                     default: $bin = $row[3]; //day, week, year
                 }
                 //add result to correct bin
-                $result[$bin][$layer] = (int) $row[1] + $row[2];
+                $flow_data['x'][] = $bin;
+                $flow_data['y'][] = (int) $row[1] + $row[2];
             }
+            //add to json format
+            $json['data'][] = array(
+                'x' => $flow_data['x'], 
+                'y' => $flow_data['y'],
+                'mode' => 'lines',
+                'name' => 'fietsers'
+            );
         }
         if ($layer == 'waittime') {
             $ids = array_map(function($a) { global $db; return '\'' . mysqli_real_escape_string($db['link'], $a) . '\''; }, $ids);
@@ -112,89 +122,66 @@ function worker_process($request_details) {
                 write_log($qry);
                 write_log(mysqli_error($db['link']));
             }
+            $waittime_data = array('x' => array(), 'avg_waittime' => array(), 'max_waittime' => array(), 'timeloss' => array(), 'greenarrival' => array());
             while ($row = mysqli_fetch_row($res)) {
                 //decide bin or bins for time period
                 switch ($request_details['aggregate']) {
                     //case 'h14' : $timestep = 15 * 60; break;
                     //case 'h12' : $timestep = 30 * 60; break;
-                    case 'h' : 
+                    case 'h' : $bin = $row[5] . ' ' . str_pad($row[6], 2, '0', STR_PAD_LEFT); break;
                     case 'm' : 
-                    case 'q' : $bin = $row[5].str_pad($row[6], 2, '0', STR_PAD_LEFT); break;
+                    case 'q' : $bin = $row[5] . '-' . str_pad($row[6], 2, '0', STR_PAD_LEFT); break;
                     default: $bin = $row[5]; //day, week, year
                 }
                 //add result to correct bin
-                $result[$bin][$layer] = array(
-                    1 => (int) $row[1],
-                    2 => (int) $row[2],
-                    3 => (int) $row[3],
-                    4 => (int) $row[4]
-                );
+                $waittime_data['x'][] = $bin;
+                $waittime_data['avg_waittime'][] = (int) $row[1];
+                $waittime_data['max_waittime'][] = (int) $row[2];
+                $waittime_data['timeloss'][] = (int) $row[3];
+                $waittime_data['greenarrival'][] = (int) $row[4];
             }
-        }
-    }
-    ksort($result);
-    //build chart.js data format
-    $chartjs = array();
-    //labels (timestamps)
-    $chartjs['labels'] = array_keys($result);
-    //datasets
-    $datasets = array();
-    //dataset
-    $datasets[0] = array(
-        'data' => array(),
-        'type' => 'line',
-        'label' => 'fietsers',
-        'yAxisID' => 'axis-count'
-    );
-    $datasets[1] = array(
-        'data' => array(),
-        'type' => 'bar',
-        'label' => 'gem wachttijd',
-        'yAxisID' => 'axis-seconds'
-    );
-    $datasets[2] = array(
-        'data' => array(),
-        'type' => 'bar',
-        'label' => 'max wachttijd',
-        'yAxisID' => 'axis-seconds'
-    );
-    $datasets[3] = array(
-        'data' => array(),
-        'type' => 'bar',
-        'label' => 'verliesminuten',
-        'yAxisID' => 'axis-minutes'
-    );
-    $datasets[4] = array(
-        'data' => array(),
-        'type' => 'bar',
-        'label' => 'groenaankomst',
-        'yAxisID' => 'axis-percent'
-    );
-    foreach ($chartjs['labels'] as $bin) {
-        //flow
-        $data_this_pos = $result[$bin]['flow'];
-        $datasets[0]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
-        //waittime
-        for ($i = 1; $i < 5; $i++) {
-            $data_this_pos = $result[$bin]['waittime'][$i];
-            $datasets[$i]['data'][] = (empty($data_this_pos) ? null : $data_this_pos);
-        }
-    }
-    $chartjs['datasets'] = array_values($datasets);
-    //convert timestamps to human readable
-    for ($i = 0; $i < count($chartjs['labels']); $i++) {
-        switch ($request_details['aggregate']) {
-            //case 'h14' : $timestep = 15 * 60; break;
-            //case 'h12' : $timestep = 30 * 60; break;
-            case 'd' : $chartjs['labels'][$i] = substr($chartjs['labels'][$i], 8, 2) . '-' . substr($chartjs['labels'][$i], 5, 2) . '-' . substr($chartjs['labels'][$i], 0, 4); break;
-            case 'm' : $chartjs['labels'][$i] = named_month_by_mysql_index(substr($chartjs['labels'][$i], 4)) . ' ' . substr($chartjs['labels'][$i], 0, 4); break;
-            case 'q' : $chartjs['labels'][$i] = 'Q' . substr($chartjs['labels'][$i], 4) . ' ' . substr($chartjs['labels'][$i], 0, 4); break;
-            case 'w' : $chartjs['labels'][$i] = 'w' . substr($chartjs['labels'][$i], 4) . ' ' . substr($chartjs['labels'][$i], 0, 4); break;
-            case 'h' : $chartjs['labels'][$i] = substr($chartjs['labels'][$i], 0, 10) . ' ' . substr($chartjs['labels'][$i], 10)  . ':00'; break;
-            default: break;
+            //add to json format
+            $json['data'][] = array(
+                'x' => $waittime_data['x'], 
+                'y' => $waittime_data['avg_waittime'],
+                'mode' => 'bar',
+                'name' => 'gem wachttijd'
+            );
+            $json['data'][] = array(
+                'x' => $waittime_data['x'], 
+                'y' => $waittime_data['max_waittime'],
+                'mode' => 'bar',
+                'name' => 'max wachttijd'
+            );
+            $json['data'][] = array(
+                'x' => $waittime_data['x'], 
+                'y' => $waittime_data['timeloss'],
+                'mode' => 'bar',
+                'name' => 'verliesminuten'
+            );
+            $json['data'][] = array(
+                'x' => $waittime_data['x'], 
+                'y' => $waittime_data['greenarrival'],
+                'mode' => 'bar',
+                'name' => 'groenaankomst'
+            );
         }
     }
 
-    return json_encode($chartjs);
+    //layout options
+    $json['layout'] = array(
+        'xaxis' => array(
+            'type' => ($request_details['aggregate'] == 'q') ? 'linear' : 'date',
+            'showgrid' => 'true',
+            'autorange' => 'true'
+        ),
+        'yaxis' => array(
+            'type' => 'linear',
+            'showgrid' => 'true',
+            'autorange' => 'true'
+        )
+    );
+
+    return json_encode($json);
 }
 ?>

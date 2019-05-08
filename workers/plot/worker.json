@@ -2,5 +2,9 @@
     "name": "Plot",
     "desc": "Een grafiek van de meetwaarden over de tijd",
     "layers": ["flow"],
-    "periods": 1
+    "periods": 1,
+    "report": {
+        "type": "graph",
+        "desc": "<ul><li>gemiddeld aantal fietsers per uur in periode op tijdstip</li></ul>"
+    }
 }

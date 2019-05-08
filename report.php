@@ -21,6 +21,7 @@
 require 'dbconnect.inc.php';
 require 'config.inc.php';
 require 'functions/label_functions.php';
+require_once 'functions/log.php';
 
 //TODO: place this in separate config file with the same thing from request.php
 $aggregateoptions = array (
@@ -43,16 +44,13 @@ $aggregateoptions = array (
 	<meta charset="utf-8">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script src="jquery/jquery-3.3.1.min.js"></script>
-	<script src="Chart.js/Chart.min.js"></script>
 </head>
 <body>
 	
     <?php include('menu.inc.php'); 
 
-    
-    
     //load report by id
-    $qry = "SELECT `reports`.`id` AS `report_id`, `users`.`name` AS `username`, `reports`.`name` AS `report_name`, `reports`.`worker` AS `worker`, `reports`.`process_error` AS `process_error`, `reports`.`date_create` AS `date`, `request_queue`.`request_details` AS `request_details`
+    $qry = "SELECT `reports`.`id` AS `report_id`, `users`.`name` AS `username`, `reports`.`name` AS `report_name`, `reports`.`worker` AS `worker`, `reports`.`process_error` AS `process_error`, `reports`.`date_create` AS `date`, `request_queue`.`request_details` AS `request_details`, `reports`.`result` AS `result`
     FROM `reports`
     LEFT JOIN `users`
     ON `reports`.`user_id` = `users`.`id`
@@ -73,11 +71,35 @@ $aggregateoptions = array (
             //include worker
             $worker = 'workers/' . $data_report['worker'] . '/report.inc.php';
             $worker_config = 'workers/' . $data_report['worker'] . '/worker.json';
-            if (file_exists($worker)) {
-                include $worker;
+            if (file_exists($worker_config)) {
                 //get worker config
                 $worker_config = file_get_contents($worker_config);
                 $worker_config = json_decode($worker_config, TRUE);
+
+                //decide default graph or custom report
+                if ($worker_config['report']['type'] == 'graph') {
+                    //default graph
+                    ?>
+                    <script src="plotly/plotly.min.js"></script>
+                    <div id="chart" style="width:90%;height:60%;"></div>
+                    <script>
+
+                    //get chart data
+                    chart = JSON.parse('<?php echo $data_report['result']; ?>');
+                    Plotly.newPlot('chart', chart.data, chart.layout);
+                    </script>
+                    <?php
+                }
+                else {
+                    //custom report
+                    if (file_exists($worker)) {
+                        include $worker;
+                    }
+                    else {
+                        echo '<p class="error">Kan rapport niet laden</p>';
+                        write_log('Cannot open file ' . $worker);
+                    }
+                }
 
                 //list measurement sites
                 echo '<h2>meetlocaties</h2>';
