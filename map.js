@@ -348,42 +348,38 @@ function openMapPopup(e, layer, id) {
 * Show availability graph in marker's popup when it has opened
 */
 function showAvailabilityGraphForPopup(layer, id) {
-	var chart = new Chart(document.getElementById('availability-chart'), {
-		type: 'line',
-		options: {
-			title: {
-				display: true,
-				text: 'Databeschikbaarheid'
-			},
-			responsive: false,
-			scales: {
-				yAxes: [{
-					ticks: {
-						suggestedMin: 0,
-						suggestedMax: 100,
-					},
-					scaleLabel: {
-						display: true,
-						labelString: 'Databeschikbaarheid [%]'
-					}
-				}]
-			},
-			legend: {
-				display: false
-			}
-		}
-	});
 	//add data points
 	$.getJSON('markeravailability.php', { layer: layer, id: id })
 	.done( function(json) {
-		chart.data = json;
-		chart.data.datasets[0].fill = false;
-		chart.data.datasets[0].borderColor = '#155429';
-		chart.update();
+		var layout = {
+			xaxis: {
+				type: 'date',
+				showgrid: true,
+				autorange: true
+			},
+			yaxis: {
+				type: 'linear',
+				showgrid: true,
+				range: [0, 105]
+			},
+			title: {
+				text: 'databeschikbaarheid',
+				font: {
+					size: 12
+				}
+			},
+			height: 240,
+			margin: {
+				l: 30,
+				r: 30,
+				t: 30,
+				b: 30
+			}
+		};
+		Plotly.newPlot('availability-chart', json.data, layout);
 	})
 	.fail( function() {
-		chart.options.title.text = 'Fout: kan gegevens niet laden';
-		chart.update();
+		$('#availability-chart').html('Fout: kan gegevens niet laden');
 	});
 }
 

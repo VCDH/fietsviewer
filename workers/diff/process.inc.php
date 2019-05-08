@@ -218,24 +218,28 @@ function worker_process($request_details) {
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['avg_waittime'],
                 'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'gem wachttijd basisperiode'
             );
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['max_waittime'],
                 'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'max wachttijd basisperiode'
             );
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['timeloss'],
                 'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'verliesminuten basisperiode'
             );
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['greenarrival'],
                 'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'groenaankomst basisperiode'
             );
         }
@@ -252,6 +256,13 @@ function worker_process($request_details) {
             'type' => 'linear',
             'showgrid' => 'true',
             'autorange' => 'true'
+        ),
+        'yaxis2' => array(
+            'type' => 'linear',
+            'showgrid' => 'true',
+            'autorange' => 'true',
+            'side' => 'right',
+            'overlaying' => 'y'
         ),
         'barmode' => 'group'
     );

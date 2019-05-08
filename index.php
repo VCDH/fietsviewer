@@ -30,7 +30,7 @@
 	<script src="js-cookie/js.cookie.min.js"></script>
 	<script src="leaflet/leaflet.js"></script>
 	<script src="Leaflet.RotatedMarker/leaflet.rotatedMarker.js"></script>
-	<script src="Chart.js/Chart.min.js"></script>
+	<script src="plotly/plotly.min.js"></script>
 	<script src="map.js"></script>
 </head>
 <body>
