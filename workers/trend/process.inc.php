@@ -103,6 +103,7 @@ function worker_process($request_details) {
             $json['data'][] = array(
                 'x' => $flow_data['x'], 
                 'y' => $flow_data['y'],
+                'type' => 'scatter',
                 'mode' => 'lines',
                 'name' => 'fietsers'
             );
@@ -144,25 +145,29 @@ function worker_process($request_details) {
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['avg_waittime'],
-                'mode' => 'bar',
+                'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'gem wachttijd'
             );
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['max_waittime'],
-                'mode' => 'bar',
+                'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'max wachttijd'
             );
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['timeloss'],
-                'mode' => 'bar',
+                'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'verliesminuten'
             );
             $json['data'][] = array(
                 'x' => $waittime_data['x'], 
                 'y' => $waittime_data['greenarrival'],
-                'mode' => 'bar',
+                'type' => 'bar',
+                'yaxis' => 'y2',
                 'name' => 'groenaankomst'
             );
         }
@@ -179,7 +184,15 @@ function worker_process($request_details) {
             'type' => 'linear',
             'showgrid' => 'true',
             'autorange' => 'true'
-        )
+        ),
+        'yaxis2' => array(
+            'type' => 'linear',
+            'showgrid' => 'true',
+            'autorange' => 'true',
+            'side' => 'right',
+            'overlaying' => 'y'
+        ),
+        'barmode' => 'group'
     );
 
     return json_encode($json);

@@ -105,15 +105,17 @@ function worker_process($request_details) {
                 $json['data'][] = array(
                     'x' => $flow_pos_data['x'], 
                     'y' => $flow_pos_data['y'],
+                    'type' => 'scatter',
                     'mode' => 'lines',
-                    'name' => $row[0] . ' (heen)'
+                    'name' => $row[0] . ' (fietsers heen)'
                 );
                 if ($draw_flow_neg == TRUE) {
                     $json['data'][] = array(
                         'x' => $flow_neg_data['x'], 
                         'y' => $flow_neg_data['y'],
+                        'type' => 'scatter',
                         'mode' => 'lines',
-                        'name' => $row[0] . ' (terug)'
+                        'name' => $row[0] . ' (fietsers terug)'
                     );
                 }
             }
@@ -150,25 +152,29 @@ function worker_process($request_details) {
                 $json['data'][] = array(
                     'x' => $waittime_data['x'], 
                     'y' => $waittime_data['avg_waittime'],
-                    'mode' => 'bar',
+                    'type' => 'bar',
+                    'yaxis' => 'y2',
                     'name' => $row[0] . ' (gem wachttijd)'
                 );
                 $json['data'][] = array(
                     'x' => $waittime_data['x'], 
                     'y' => $waittime_data['max_waittime'],
-                    'mode' => 'bar',
+                    'type' => 'bar',
+                    'yaxis' => 'y2',
                     'name' => $row[0] . ' (max wachttijd)'
                 );
                 $json['data'][] = array(
                     'x' => $waittime_data['x'], 
                     'y' => $waittime_data['timeloss'],
-                    'mode' => 'bar',
+                    'type' => 'bar',
+                    'yaxis' => 'y2',
                     'name' => $row[0] . ' (verliesminuten)'
                 );
                 $json['data'][] = array(
                     'x' => $waittime_data['x'], 
                     'y' => $waittime_data['greenarrival'],
-                    'mode' => 'bar',
+                    'type' => 'bar',
+                    'yaxis' => 'y2',
                     'name' => $row[0] . ' (groenaankomst)'
                 );
             }
@@ -186,7 +192,15 @@ function worker_process($request_details) {
             'type' => 'linear',
             'showgrid' => 'true',
             'autorange' => 'true'
-        )
+        ),
+        'yaxis2' => array(
+            'type' => 'linear',
+            'showgrid' => 'true',
+            'autorange' => 'true',
+            'side' => 'right',
+            'overlaying' => 'y'
+        ),
+        'barmode' => 'group'
     );
 
     return json_encode($json);
